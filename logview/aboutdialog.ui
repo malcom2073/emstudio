@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>AboutDialog</class>
+ <widget class="QDialog" name="AboutDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>433</width>
+    <height>174</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>About EMSLogView</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <widget class="QLabel" name="label">
+     <property name="text">
+      <string>EMSLogView, a Log Viewer for LibreEMS, Megasquirt, and
+DynamicEFI's Embedded Locker. 
+
+
+Copyright 2020 by Michael Carpenter (malcom2073@gmail.com)
+
+
+LibreEMS, Megasquirt, and Dynamic EFI Embedded Locker are copyright
+their respective owners, and are in no way connected or associated with EMSLogView.</string>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

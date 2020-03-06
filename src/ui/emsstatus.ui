@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>EmsStatus</class>
+ <widget class="QDockWidget" name="EmsStatus">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>160</width>
+    <height>411</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>160</width>
+    <height>411</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>180</width>
+    <height>411</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>DockWidget</string>
+  </property>
+  <widget class="QWidget" name="dockWidgetContents">
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>161</width>
+      <height>292</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout">
+     <item>
+      <widget class="QPushButton" name="softResetPushButton">
+       <property name="text">
+        <string>Soft Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QPushButton" name="hardResetPushButton">
+       <property name="text">
+        <string>Hard Reset</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="memoryCleanLineEdit">
+       <property name="text">
+        <string>Memory Status</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="minLockLineEdit">
+       <property name="text">
+        <string>Minimum Lock</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="crankLockLineEdit">
+       <property name="text">
+        <string>Crank Lock</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="camLockLineEdit">
+       <property name="text">
+        <string>Cam Lock</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="previousPrimaryValidLineEdit">
+       <property name="text">
+        <string>Last Event Valid</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="previousPeriodValidLineEdit">
+       <property name="text">
+        <string>Last Period Valid</string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

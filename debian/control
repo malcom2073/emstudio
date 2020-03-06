@@ -1,0 +1,15 @@
+Source: emstudio
+Section: unknown
+Priority: extra
+Maintainer: Michael Carpenter <malcom2073@gmail.com>
+Build-Depends: debhelper (>= 8.0.0), libqt4-dev (>= 4.8.0), libqwt-dev (>=6.0.0), libqt4-opengl-dev (>=4.8.0), libqjson-dev (>=0.7.1), cdbs (>=0.4.0), freeglut3-dev (>=2.5), git (>=1.2)
+Standards-Version: 3.9.2
+Homepage: http://emstune.com
+#Vcs-Git: git://git.debian.org/collab-maint/emstudio.git
+#Vcs-Browser: http://git.debian.org/?p=collab-maint/emstudio.git;a=summary
+
+Package: emstudio
+Architecture: any
+Depends: libqtcore4 (>= 4.8.0), libqt4-declarative (>= 4.8.0), libqtgui4 (>= 4.8.0), libqwt6 (>=6.0.0), libqt4-opengl (>=4.8.0), libqjson0 (>=0.7.1), libqt4-script (>=4.8.0), libqt4-svg (>= 4.8.0), libqt4-xmlpatterns (>= 4.8.0), libqt4-network (>= 4.8.0), freeglut3 (>=2.5)
+Description: Open Source ECU Tuning Application, focusing on FreeEMS (www.diyefi.org)
+ <insert long description, indented with spaces>

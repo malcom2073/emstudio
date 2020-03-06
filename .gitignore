@@ -1,0 +1,45 @@
+# Compiled sources
+*.o
+*.exe
+moc_*.h
+moc_*.cpp
+obj/
+emstudio
+core/*.dll
+core/debug
+core/release
+core/plugins/
+plugins/freeems/moc_*
+plugins/freeems/*.Debug
+plugins/freeems/*.Release
+
+# Other project stuff
+Makefile
+Makefile.Debug
+Makefile.Release
+tags
+
+# Temp files
+*~
+*.ini
+*.out
+debian/stamp-makefile*
+debian/files
+debian/emstudio.substvars
+object_script.emstudio.*
+
+# Project user files
+*.user
+
+
+# Logs
+*.json
+*.log
+*.bin
+
+# User files
+*.tgz
+*.tar.gz
+*.png
+*.zip
+

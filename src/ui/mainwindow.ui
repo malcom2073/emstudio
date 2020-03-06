@@ -1,0 +1,235 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1525</width>
+    <height>873</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>EMStudio</string>
+  </property>
+  <widget class="QWidget" name="centralWidget">
+   <layout class="QVBoxLayout" name="verticalLayout_2">
+    <item>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <item>
+       <widget class="QMdiArea" name="mdiArea"/>
+      </item>
+     </layout>
+    </item>
+    <item>
+     <widget class="QLabel" name="statusLabel">
+      <property name="text">
+       <string>Status: No File Loaded</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QLabel" name="ppsLabel">
+      <property name="text">
+       <string>PPS: 0</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
+  </widget>
+  <widget class="QMenuBar" name="menuBar">
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1525</width>
+     <height>21</height>
+    </rect>
+   </property>
+   <widget class="QMenu" name="menuFile">
+    <property name="title">
+     <string>&amp;File</string>
+    </property>
+    <addaction name="actionConnect"/>
+    <addaction name="actionDisconnect"/>
+    <addaction name="separator"/>
+    <addaction name="actionSave_Offline_Data"/>
+    <addaction name="actionLoad_Offline_Data"/>
+    <addaction name="separator"/>
+    <addaction name="actionExit_3"/>
+   </widget>
+   <widget class="QMenu" name="menuEdit">
+    <property name="title">
+     <string>&amp;Edit</string>
+    </property>
+    <addaction name="actionSettings"/>
+    <addaction name="actionPlugin_Selection"/>
+    <addaction name="actionEnable_Datalogs"/>
+    <addaction name="actionDisable_Datalog_Stream"/>
+   </widget>
+   <widget class="QMenu" name="menuWindows">
+    <property name="title">
+     <string>&amp;Windows</string>
+    </property>
+    <addaction name="actionGauges"/>
+    <addaction name="actionTables"/>
+    <addaction name="actionEMS_Info"/>
+    <addaction name="actionFlags"/>
+    <addaction name="actionPacket_Status"/>
+    <addaction name="actionEMS_Status"/>
+    <addaction name="actionInterrogation_Progress"/>
+    <addaction name="actionParameter_View"/>
+    <addaction name="actionFirmware_Metadata"/>
+    <addaction name="actionFirmware_Debug"/>
+   </widget>
+   <widget class="QMenu" name="menuHelp">
+    <property name="title">
+     <string>&amp;Help</string>
+    </property>
+    <addaction name="actionAbout"/>
+   </widget>
+   <widget class="QMenu" name="menuWizards">
+    <property name="title">
+     <string>Wizards</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuOpen_Windows">
+    <property name="title">
+     <string>Open Windows</string>
+    </property>
+   </widget>
+   <widget class="QMenu" name="menuDashboards">
+    <property name="title">
+     <string>Dashboards</string>
+    </property>
+   </widget>
+   <addaction name="menuFile"/>
+   <addaction name="menuEdit"/>
+   <addaction name="menuWindows"/>
+   <addaction name="menuOpen_Windows"/>
+   <addaction name="menuDashboards"/>
+   <addaction name="menuWizards"/>
+   <addaction name="menuHelp"/>
+  </widget>
+  <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionExit">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionConnect">
+   <property name="text">
+    <string>&amp;Connect</string>
+   </property>
+  </action>
+  <action name="actionExit_2">
+   <property name="text">
+    <string>Exit</string>
+   </property>
+  </action>
+  <action name="actionDisconnect">
+   <property name="text">
+    <string>&amp;Disconnect</string>
+   </property>
+  </action>
+  <action name="actionExit_3">
+   <property name="text">
+    <string>&amp;Exit</string>
+   </property>
+  </action>
+  <action name="actionSettings">
+   <property name="text">
+    <string>&amp;Settings</string>
+   </property>
+  </action>
+  <action name="actionGauges">
+   <property name="text">
+    <string>&amp;Gauges</string>
+   </property>
+  </action>
+  <action name="actionTables">
+   <property name="text">
+    <string>&amp;Numeric Data</string>
+   </property>
+  </action>
+  <action name="actionEMS_Info">
+   <property name="text">
+    <string>&amp;Tunable Memory</string>
+   </property>
+  </action>
+  <action name="actionFlags">
+   <property name="text">
+    <string>&amp;Flags</string>
+   </property>
+  </action>
+  <action name="action_Raw_Data">
+   <property name="text">
+    <string>&amp;Raw Data</string>
+   </property>
+  </action>
+  <action name="actionPacket_Status">
+   <property name="text">
+    <string>Packet Status</string>
+   </property>
+  </action>
+  <action name="actionAbout">
+   <property name="text">
+    <string>&amp;About</string>
+   </property>
+  </action>
+  <action name="actionSave_Offline_Data">
+   <property name="text">
+    <string>Save Tune</string>
+   </property>
+  </action>
+  <action name="actionLoad_Offline_Data">
+   <property name="text">
+    <string>Load Tune</string>
+   </property>
+  </action>
+  <action name="actionEMS_Status">
+   <property name="text">
+    <string>EMS Status</string>
+   </property>
+  </action>
+  <action name="actionInterrogation_Progress">
+   <property name="text">
+    <string>Interrogation Progress</string>
+   </property>
+  </action>
+  <action name="actionEnable_Datalogs">
+   <property name="text">
+    <string>Enable Live Data Stream</string>
+   </property>
+  </action>
+  <action name="actionDisable_Datalog_Stream">
+   <property name="text">
+    <string>Disable Live Data Stream</string>
+   </property>
+  </action>
+  <action name="actionParameter_View">
+   <property name="text">
+    <string>Parameter View</string>
+   </property>
+  </action>
+  <action name="actionFirmware_Metadata">
+   <property name="text">
+    <string>Firmware Metadata</string>
+   </property>
+  </action>
+  <action name="actionFirmware_Debug">
+   <property name="text">
+    <string>Firmware Debug</string>
+   </property>
+  </action>
+  <action name="actionPlugin_Selection">
+   <property name="text">
+    <string>Plugin Selection</string>
+   </property>
+  </action>
+ </widget>
+ <layoutdefault spacing="6" margin="11"/>
+ <resources/>
+ <connections/>
+</ui>

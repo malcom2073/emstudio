@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>ScatterPlotView</class>
+ <widget class="QWidget" name="ScatterPlotView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>719</width>
+    <height>548</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout_2">
+   <item>
+    <layout class="QVBoxLayout" name="verticalLayout" stretch="4,1">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout">
+       <item>
+        <widget class="MapView" name="leftMapView" native="true"/>
+       </item>
+       <item>
+        <widget class="MapView" name="rightMapView" native="true"/>
+       </item>
+      </layout>
+     </item>
+     <item>
+      <widget class="GraphView" name="bottomGraph" native="true"/>
+     </item>
+    </layout>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>MapView</class>
+   <extends>QWidget</extends>
+   <header>mapview.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>GraphView</class>
+   <extends>QWidget</extends>
+   <header>graphview.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>

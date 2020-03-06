@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>GraphView</class>
+ <widget class="QWidget" name="GraphView">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>819</width>
+    <height>454</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Form</string>
+  </property>
+  <layout class="QHBoxLayout" name="horizontalLayout" stretch="1,4">
+   <item>
+    <widget class="DataSelectionScreen" name="dataSelectWidget" native="true"/>
+   </item>
+   <item>
+    <widget class="QGraph" name="graphWidget" native="true"/>
+   </item>
+  </layout>
+ </widget>
+ <customwidgets>
+  <customwidget>
+   <class>DataSelectionScreen</class>
+   <extends>QWidget</extends>
+   <header>dataselectionscreen.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>QGraph</class>
+   <extends>QWidget</extends>
+   <header>qgraph.h</header>
+   <container>1</container>
+  </customwidget>
+ </customwidgets>
+ <resources/>
+ <connections/>
+</ui>
