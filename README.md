@@ -2,7 +2,7 @@
 
 Written by Michael Carpenter (malcom2073@gmail.com), and licensed under MIT. 
 
-A large amount of the code has been reworked at this point to eliminate any remnants of GPL, so at this point the entire code-base is MIT, with the exception of some libraries which are LGPL.
+A large amount of the code has been reworked to eliminate any remnants of GPL, so at this point the entire code-base is MIT, with the exception of some libraries which are LGPL.
 
 ### Overview:
 
