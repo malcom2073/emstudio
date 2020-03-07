@@ -74,7 +74,7 @@ void SerialPort::run()
     qDebug() << "Connected";
     emit connected();
 
-    while(m_port->isOpen())
+    while(m_port->isOpen() && !this->isInterruptionRequested())
     {
         if (m_port->bytesAvailable() >= 2)
         {
