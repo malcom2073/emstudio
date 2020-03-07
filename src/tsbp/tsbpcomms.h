@@ -35,7 +35,6 @@ class TSBPComms : public EmsComms
 {
 	Q_OBJECT
 	Q_INTERFACES(EmsComms)
-	Q_PLUGIN_METADATA(IID "EmsComms/1.0" FILE "msplugin.json")
 public:
 	enum RequestType
 	{

@@ -19,9 +19,16 @@ void TSBPTable2DData::setAxis(QByteArray data)
 	for (int i=0;i<(m_axisSize * m_axisElementSize);i+=m_axisElementSize)
 	{
 		double val = 0;
-		for (int j=0;j<m_axisElementSize;j++)
+		if (!m_axisIsFloat)
 		{
-			val += (((unsigned char)data[(m_axisOffset + i + j)]) << (((m_axisElementSize-1) - j) * 8));
+			for (int j=0;j<m_axisElementSize;j++)
+			{
+				val += (((unsigned char)data[(m_axisOffset + i + j)]) << (((m_axisElementSize-1) - j) * 8));
+			}
+		}
+		else
+		{
+			val = reinterpret_cast<float&>(*(data.data()+m_axisOffset + i));
 		}
 		val *= m_axisScale;
 		val += m_axisTranslate;
@@ -35,16 +42,23 @@ void TSBPTable2DData::setValues(QByteArray data)
 	for (int i=0;i<(m_valueSize * m_valueElementSize);i+=m_valueElementSize)
 	{
 		double val = 0;
-		for (int j=0;j<m_valueElementSize;j++)
+		if (!m_valueIsFloat)
 		{
-			val += (((unsigned char)data[m_valueOffset + i + j]) << (((m_axisElementSize-1)-j) * 8));
+			for (int j=0;j<m_valueElementSize;j++)
+			{
+				val += (((unsigned char)data[m_valueOffset + i + j]) << (((m_axisElementSize-1)-j) * 8));
+			}
+		}
+		else
+		{
+			val = reinterpret_cast<float&>(*(data.data()+m_valueOffset + i));
 		}
 		val *= m_valueScale;
 		val += m_valueTranslate;
 		m_values.append(val);
 	}
 }
-void TSBPTable2DData::setAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned)
+void TSBPTable2DData::setAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat)
 {
 	m_axisOffset = offset;
 	m_axisSize = totalsize;
@@ -53,9 +67,10 @@ void TSBPTable2DData::setAxisMetaData(int pagenum,unsigned int offset, unsigned 
 	m_axisTranslate = translate;
 	m_axisSigned = issigned;
 	m_axisPage = pagenum;
+	m_axisIsFloat = isfloat;
 }
 
-void TSBPTable2DData::setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize, int elementsize,float scale,float translate,bool issigned)
+void TSBPTable2DData::setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize, int elementsize,float scale,float translate,bool issigned,bool isfloat)
 {
 	m_valueOffset = offset;
 	m_valueSize = totalsize;
@@ -64,6 +79,7 @@ void TSBPTable2DData::setValueMetaData(int pagenum,unsigned int offset, unsigned
 	m_valueTranslate = translate;
 	m_valueSigned = issigned;
 	m_valuePage = pagenum;
+	m_valueIsFloat = isfloat;
 }
 
 QList<double> TSBPTable2DData::axis()
@@ -99,7 +115,11 @@ void TSBPTable2DData::setData(unsigned short locationid,bool isflashonly,QByteAr
 {
 
 }
-
+void TSBPTable2DData::setData(unsigned short locationid,bool isflashonly,QByteArray payload)
+{
+	setAxis(payload);
+	setValues(payload);
+}
 QByteArray TSBPTable2DData::data()
 {
 	return QByteArray();

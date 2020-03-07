@@ -113,7 +113,7 @@ void SerialPort::run()
 				int bufread = m_port->read(buffer,2);
 				uint16_t packetsize = (buffer[0] << 8) + buffer[1];
 				int avail = m_port->available();
-				qDebug() << "SERIAL**** Reading:" << packetsize << avail;
+				//qDebug() << "SERIAL**** Reading:" << packetsize << avail;
 				bufread = m_port->read(buffer,m_port->available());
 				QByteArray toemit;
 				toemit.append(QByteArray((char*)buffer,bufread));
@@ -128,7 +128,7 @@ void SerialPort::run()
 					avail = m_port->available();
 					bufread = m_port->read(buffer,avail);
 					toemit.append(QByteArray((char*)buffer,bufread));
-					qDebug() << "SERIAL**** Reading:" << packetsize << avail;
+					//qDebug() << "SERIAL**** Reading:" << packetsize << avail;
 					if (QDateTime::currentMSecsSinceEpoch() - msecs > 2000)
 					{
 						//Two second timeout, clear the buffer and reset.

@@ -19,10 +19,10 @@ public:
 	//void setValues(QByteArray data, int elementsize,float scale, float translate);
 	void setAxis(QByteArray data);
 	void setValues(QByteArray data);
-	void setData(unsigned short locationid,bool isflashonly,QByteArray payload){}
+	void setData(unsigned short locationid,bool isflashonly,QByteArray payload);
 	void setMetaData(TableMeta metadata,FieldMeta xMeta,FieldMeta yMeta){}
-	void setAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned);
-	void setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned);
+	void setAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat);
+	void setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat);
 	QList<double> axis();
 	QList<double> values();
 	int columns() { return m_axis.size(); }
@@ -78,6 +78,8 @@ private:
 	bool m_valueSigned;
 	int m_axisPage;
 	int m_valuePage;
+	bool m_axisIsFloat;
+	bool m_valueIsFloat;
 	unsigned int m_axisOffset;
 	unsigned int m_axisSize;
 	unsigned int m_valueOffset;

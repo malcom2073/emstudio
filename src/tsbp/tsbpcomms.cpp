@@ -922,6 +922,8 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 		curve->setValueLabel(i.value()->columnLabels.second);
 		curve->setAxisVariable(xbin);
 		curve->setValueVariable(ybin);
+		bool foundAxisMeta = false;
+		bool foundValueMetaData = false;
 		for (QMap<QString,QMap<QString,arrayclass> >::const_iterator k = m_pageArrayMap.constBegin();k!=m_pageArrayMap.constEnd();k++)
 		{
 			for (QMap<QString,arrayclass>::const_iterator j = k.value().constBegin();j!=k.value().constEnd();j++)
@@ -929,7 +931,8 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 
 				if (j.key() == xbin)
 				{
-					curve->setAxisMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned);
+					foundAxisMeta = true;
+					curve->setAxisMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat);
 					if (!m_pageTo2DTableList.contains(k.key().toInt()))
 					 {
 						 m_pageTo2DTableList[k.key().toInt()] = QList<TSBPTable2DData*>();
@@ -941,7 +944,8 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 				}
 				if (j.key() == ybin)
 				{
-					curve->setValueMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned);
+					foundValueMetaData = true;
+					curve->setValueMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat);
 					if (!m_pageTo2DTableList.contains(k.key().toInt()))
 					{
 						m_pageTo2DTableList[k.key().toInt()] = QList<TSBPTable2DData*>();
@@ -953,7 +957,10 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 				}
 			}
 		}
-		m_2dTableData[i.key()] = curve;
+		if (foundValueMetaData && foundAxisMeta)
+		{
+			m_2dTableData[i.key()] = curve;
+		}
 	}
 
 
@@ -1561,9 +1568,9 @@ void TSBPComms::triggerNextSend()
 
 void TSBPComms::parseBuffer(QByteArray data)
 {
-	qDebug() << "Bytes available:" << data.size();
-	qDebug() << data.toHex();
-	qDebug() << QString(data);
+	//qDebug() << "Bytes available:" << data.size();
+	//qDebug() << data.toHex();
+	//qDebug() << QString(data);
 	if (m_waitingForPacketResponse == true)
 	{
 		if (m_currentRequest.type == GET_FIRMWARE_VERSION)
@@ -1575,7 +1582,7 @@ void TSBPComms::parseBuffer(QByteArray data)
 		else if (m_currentRequest.type == GET_DATA)
 		{
 			QByteArray realtimedata = data.mid(1,data.size()-5);
-			qDebug() << "Data:" << realtimedata;
+			//qDebug() << "Data:" << realtimedata;
 			emit dataLogPayloadReceived(realtimedata);
 			currentPacketCount++;
 		}
@@ -1597,6 +1604,11 @@ void TSBPComms::parseBuffer(QByteArray data)
 				{
 					i.value()->setData(0,false,m_pageBufferMap[0]);
 				}
+				for (QMap<QString,TSBPTable2DData*>::const_iterator i=m_2dTableData.constBegin();i!=m_2dTableData.constEnd();i++)
+				{
+					i.value()->setData(0,false,m_pageBufferMap[0]);
+				}
+
 				emit interrogationComplete();
 			}
 			QString pagenum = m_currentRequest.args.at(0).toString();
