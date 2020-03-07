@@ -35,6 +35,7 @@ protected:
 	QPoint lastPos;
 private:
 	Table3DData *m_tableData;
+	QColor getColor(float value,float max);
 signals:
 
 public slots:

@@ -924,6 +924,18 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 		curve->setValueVariable(ybin);
 		bool foundAxisMeta = false;
 		bool foundValueMetaData = false;
+		for (QMap<QString,arrayclass>::const_iterator k = arrayMap.constBegin();k != arrayMap.constEnd();k++)
+		{
+			if (k.key() == xbin)
+			{
+				curve->setAxisMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat);
+			}
+			if (k.key() == ybin)
+			{
+				curve->setValueMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat);
+			}
+
+		}
 		for (QMap<QString,QMap<QString,arrayclass> >::const_iterator k = m_pageArrayMap.constBegin();k!=m_pageArrayMap.constEnd();k++)
 		{
 			for (QMap<QString,arrayclass>::const_iterator j = k.value().constBegin();j!=k.value().constEnd();j++)
@@ -957,7 +969,7 @@ TSBPComms::TSBPComms(QObject *parent) : EmsComms(parent)
 				}
 			}
 		}
-		if (foundValueMetaData && foundAxisMeta)
+		//if (foundValueMetaData && foundAxisMeta)
 		{
 			m_2dTableData[i.key()] = curve;
 		}

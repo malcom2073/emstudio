@@ -11,9 +11,15 @@
 TSBPTable2DData::TSBPTable2DData() :
 	Table2DData()
 {
+	m_validAxisMetaData = false;
+	m_validValueMetaData = false;
 }
 void TSBPTable2DData::setAxis(QByteArray data)
 {
+	if (!m_validAxisMetaData)
+	{
+		return;
+	}
 	axisdata = data;
 	m_axis.clear();
 	for (int i=0;i<(m_axisSize * m_axisElementSize);i+=m_axisElementSize)
@@ -37,6 +43,10 @@ void TSBPTable2DData::setAxis(QByteArray data)
 }
 void TSBPTable2DData::setValues(QByteArray data)
 {
+	if (!m_validValueMetaData)
+	{
+		return;
+	}
 	valuedata = data;
 	m_values.clear();
 	for (int i=0;i<(m_valueSize * m_valueElementSize);i+=m_valueElementSize)
@@ -68,6 +78,7 @@ void TSBPTable2DData::setAxisMetaData(int pagenum,unsigned int offset, unsigned 
 	m_axisSigned = issigned;
 	m_axisPage = pagenum;
 	m_axisIsFloat = isfloat;
+	m_validAxisMetaData = true;
 }
 
 void TSBPTable2DData::setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize, int elementsize,float scale,float translate,bool issigned,bool isfloat)
@@ -80,6 +91,7 @@ void TSBPTable2DData::setValueMetaData(int pagenum,unsigned int offset, unsigned
 	m_valueSigned = issigned;
 	m_valuePage = pagenum;
 	m_valueIsFloat = isfloat;
+	m_validValueMetaData = true;
 }
 
 QList<double> TSBPTable2DData::axis()

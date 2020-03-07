@@ -68,6 +68,8 @@ private:
 	QByteArray valuedata;
 	QList<double> m_values;
 	QList<double> m_axis;
+	bool m_validAxisMetaData;
+	bool m_validValueMetaData;
 	float m_axisScale;
 	float m_valueScale;
 	float m_axisTranslate;

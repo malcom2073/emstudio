@@ -97,6 +97,25 @@ void TableMap3D::resizeGL(int w, int h)
 	glMatrixMode(GL_MODELVIEW);
 }
 
+QColor TableMap3D::getColor(float value,float max)
+{
+	if (value < m_tableData->maxActualValue()/4)
+	{
+		return QColor::fromRgb(0,255*((value)/(max/4.0)),255);
+	}
+	else if (value < ((max/4)*2))
+	{
+		return QColor::fromRgb(0,255,255-(255*((value-((max/4.0)))/(max/4.0))));
+	}
+	else if (value < ((max/4)*3))
+	{
+		return QColor::fromRgb(255*((value-((max/4.0)*2))/(max/4.0)),255,0);
+	}
+	else
+	{
+		return QColor::fromRgb(255,255-(255*((value-((max/4.0)*3))/(max/4.0))),0);
+	}
+}
 void TableMap3D::paintGL()
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -201,36 +220,16 @@ void TableMap3D::paintGL()
 				double r=0;
 				double g=0;
 				double b=0;
-				double val = m_tableData->values()[y][x];
-				if (val < m_tableData->maxActualValue()/4)
-				{
-					r=0;
-					g=(255*((val)/(m_tableData->maxActualValue()/4.0)));
-					b=255;
-				}
-				else if (val < ((m_tableData->maxActualValue()/4)*2))
-				{
-					r=0;
-					g=255;
-					b=255-(255*((val-((m_tableData->maxActualValue()/4.0)))/(m_tableData->maxActualValue()/4.0)));
-				}
-				else if (val < ((m_tableData->maxActualValue()/4)*3))
-				{
-					r=(255*((val-((m_tableData->maxActualValue()/4.0)*2))/(m_tableData->maxActualValue()/4.0)));
-					g=255;
-					b=0;
-				}
-				else
-				{
-					r=255;
-					g=255-(255*((val-((m_tableData->maxActualValue()/4.0)*3))/(m_tableData->maxActualValue()/4.0)));
-					b=0;
-				}
+				QColor color1 = getColor(m_tableData->values()[y][x],m_tableData->maxActualValue());
+				QColor color2 = getColor(m_tableData->values()[y+1][x],m_tableData->maxActualValue());
+				QColor color3 = getColor(m_tableData->values()[y+1][x+1],m_tableData->maxActualValue());
+				QColor color4 = getColor(m_tableData->values()[y][x+1],m_tableData->maxActualValue());
 				if (i == 0 || i == 2)
 				{
-					r = 0;
-					g = 0;
-					b = 0;
+					color1 = QColor::fromRgb(0,0,0);
+					color2 = QColor::fromRgb(0,0,0);
+					color3 = QColor::fromRgb(0,0,0);
+					color4 = QColor::fromRgb(0,0,0);
 				}
 				else if (i == 1)
 				{
@@ -241,31 +240,59 @@ void TableMap3D::paintGL()
 
 				//X and Y are reversed here, to allow for the graph to look the proper way.
 
-				float y0 = ((float)x * maxy)/((float)m_tableData->xAxis().size()-1.0);
-				float x0 = ((float)y)/((float)m_tableData->yAxis().size()-1.0);
+				/*float y0 = ((float)(x-0.5) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x0 = ((float)(y-0.5))/((float)m_tableData->yAxis().size()-1.0);
 				float z0 = (float)m_tableData->values()[y][x] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x0+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y0)-((i==1) ? MAP3DCELLSPACING : 0),z0);
 				glVertex3f(x0,(maxy-y0),z0+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
-				float y1 = ((float)x * maxy)/((float)m_tableData->xAxis().size()-1.0);
-				float x1 = ((float)y+1)/((float)m_tableData->yAxis().size()-1.0);
+				float y1 = ((float)(x-0.5) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x1 = ((float)y+0.5)/((float)m_tableData->yAxis().size()-1.0);
 				float z1 = (float)m_tableData->values()[y+1][x] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x1-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y1)-((i==1) ? MAP3DCELLSPACING : 0),z1);
 				glVertex3f(x1,(maxy-y1),z1+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
-				float y2 = ((float)((x+1.0) * maxy))/((float)m_tableData->xAxis().size()-1.0);
-				float x2 = ((float)y+1.0)/((float)m_tableData->yAxis().size()-1.0);
+				float y2 = ((float)((x+0.5) * maxy))/((float)m_tableData->xAxis().size()-1.0);
+				float x2 = ((float)y+0.5)/((float)m_tableData->yAxis().size()-1.0);
 				float z2 = (float)m_tableData->values()[y+1][x+1] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x2-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y2)+((i==1) ? MAP3DCELLSPACING : 0),z2);
 				glVertex3f(x2,(maxy-y2),z2+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
-				float y3 = ((float)(x+1) * maxy)/((float)m_tableData->xAxis().size()-1.0);
-				float x3 = ((float)y)/((float)m_tableData->yAxis().size()-1.0);
+				float y3 = ((float)(x+0.5) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x3 = ((float)(y-0.5))/((float)m_tableData->yAxis().size()-1.0);
 				float z3 = (float)m_tableData->values()[y][x+1]/m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
+				//glVertex3f(x3+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y3)+((i==1) ? MAP3DCELLSPACING : 0),z3);
+				glVertex3f(x3,(maxy-y3),z3+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));*/
+
+				float y0 = ((float)(x) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x0 = ((float)(y))/((float)m_tableData->yAxis().size()-1.0);
+				float z0 = (float)m_tableData->values()[y][x] / m_tableData->maxActualValue();
+				glColor4f(color1.red()/255.0f,color1.green()/255.0f,color1.blue()/255.0f,1);
+				//glVertex3f(x0+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y0)-((i==1) ? MAP3DCELLSPACING : 0),z0);
+				glVertex3f(x0,(maxy-y0),z0+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
+
+				float y1 = ((float)(x) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x1 = ((float)y+1)/((float)m_tableData->yAxis().size()-1.0);
+				float z1 = (float)m_tableData->values()[y+1][x] / m_tableData->maxActualValue();
+				glColor4f(color2.red()/255.0f,color2.green()/255.0f,color2.blue()/255.0f,1);
+				//glVertex3f(x1-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y1)-((i==1) ? MAP3DCELLSPACING : 0),z1);
+				glVertex3f(x1,(maxy-y1),z1+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
+
+				float y2 = ((float)((x+1) * maxy))/((float)m_tableData->xAxis().size()-1.0);
+				float x2 = ((float)y+1)/((float)m_tableData->yAxis().size()-1.0);
+				float z2 = (float)m_tableData->values()[y+1][x+1] / m_tableData->maxActualValue();
+				glColor4f(color3.red()/255.0f,color3.green()/255.0f,color3.blue()/255.0f,1);
+				//glVertex3f(x2-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y2)+((i==1) ? MAP3DCELLSPACING : 0),z2);
+				glVertex3f(x2,(maxy-y2),z2+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
+
+				float y3 = ((float)(x+1) * maxy)/((float)m_tableData->xAxis().size()-1.0);
+				float x3 = ((float)(y))/((float)m_tableData->yAxis().size()-1.0);
+				float z3 = (float)m_tableData->values()[y][x+1]/m_tableData->maxActualValue();
+				glColor4f(color4.red()/255.0f,color4.green()/255.0f,color4.blue()/255.0f,1);
 				//glVertex3f(x3+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y3)+((i==1) ? MAP3DCELLSPACING : 0),z3);
 				glVertex3f(x3,(maxy-y3),z3+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 			}

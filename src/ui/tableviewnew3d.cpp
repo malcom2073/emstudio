@@ -254,8 +254,15 @@ void TableViewNew3D::drawCell(QPainter *painter,int cellx,int celly,QString text
 	}
 
 
+	QFont font = painter->font();
+	font.setPixelSize(m_itemHeight*0.7);
+	painter->setFont(font);
 	painter->setPen(pen);
 	int width = painter->fontMetrics().width(text);
+	if (width > m_itemWidth)
+	{
+
+	}
 	painter->drawText(((cellx)*m_itemWidth) + (m_itemWidth/2.0) - (width / 2.0),(celly)*m_itemHeight + ((m_itemHeight/2.0)-2) + (painter->fontMetrics().height()/2.0),text);
 	painter->setPen(oldpen);
 }
