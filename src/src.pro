@@ -17,7 +17,6 @@ INCLUDEPATH += $$PWD/../lib/core
 DEPENDPATH += $$PWD/../lib/core
 
 include(lib/QsLog/QsLog.pri)
-include(../lib/core/core.pri)
 include(lib/QHexEdit/QHexEdit.pri)
 include (lib/serial/serial.pri)
 win32 {
