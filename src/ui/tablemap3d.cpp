@@ -129,7 +129,7 @@ void TableMap3D::paintGL()
 		glVertex3f(maxx/*-(((float)1)/((float)m_tableData->xAxis().size()))*/,maxy/*+((float)2)/((float)m_tableData->xAxis().size())*/,(float)i/10.0);
 		glVertex3f(0,maxy/*+((float)2)/((float)m_tableData->xAxis().size())*/,(float)i/10.0);
 		glEnd();
-		this->renderText(-0.1,maxy + 0.1,(float)i/10.0,QString::number((m_tableData->maxCalcedValue()) * (i/10.0),'f',2));
+		this->renderText(-0.1,maxy + 0.1,(float)i/10.0,QString::number((m_tableData->maxActualValue()) * (i/10.0),'f',2));
 	}
 
 
@@ -202,28 +202,28 @@ void TableMap3D::paintGL()
 				double g=0;
 				double b=0;
 				double val = m_tableData->values()[y][x];
-				if (val < m_tableData->maxCalcedValue()/4)
+				if (val < m_tableData->maxActualValue()/4)
 				{
 					r=0;
-					g=(255*((val)/(m_tableData->maxCalcedValue()/4.0)));
+					g=(255*((val)/(m_tableData->maxActualValue()/4.0)));
 					b=255;
 				}
-				else if (val < ((m_tableData->maxCalcedValue()/4)*2))
+				else if (val < ((m_tableData->maxActualValue()/4)*2))
 				{
 					r=0;
 					g=255;
-					b=255-(255*((val-((m_tableData->maxCalcedValue()/4.0)))/(m_tableData->maxCalcedValue()/4.0)));
+					b=255-(255*((val-((m_tableData->maxActualValue()/4.0)))/(m_tableData->maxActualValue()/4.0)));
 				}
-				else if (val < ((m_tableData->maxCalcedValue()/4)*3))
+				else if (val < ((m_tableData->maxActualValue()/4)*3))
 				{
-					r=(255*((val-((m_tableData->maxCalcedValue()/4.0)*2))/(m_tableData->maxCalcedValue()/4.0)));
+					r=(255*((val-((m_tableData->maxActualValue()/4.0)*2))/(m_tableData->maxActualValue()/4.0)));
 					g=255;
 					b=0;
 				}
 				else
 				{
 					r=255;
-					g=255-(255*((val-((m_tableData->maxCalcedValue()/4.0)*3))/(m_tableData->maxCalcedValue()/4.0)));
+					g=255-(255*((val-((m_tableData->maxActualValue()/4.0)*3))/(m_tableData->maxActualValue()/4.0)));
 					b=0;
 				}
 				if (i == 0 || i == 2)
@@ -243,28 +243,28 @@ void TableMap3D::paintGL()
 
 				float y0 = ((float)x * maxy)/((float)m_tableData->xAxis().size()-1.0);
 				float x0 = ((float)y)/((float)m_tableData->yAxis().size()-1.0);
-				float z0 = (float)m_tableData->values()[y][x] / m_tableData->maxCalcedValue();
+				float z0 = (float)m_tableData->values()[y][x] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x0+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y0)-((i==1) ? MAP3DCELLSPACING : 0),z0);
 				glVertex3f(x0,(maxy-y0),z0+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
 				float y1 = ((float)x * maxy)/((float)m_tableData->xAxis().size()-1.0);
 				float x1 = ((float)y+1)/((float)m_tableData->yAxis().size()-1.0);
-				float z1 = (float)m_tableData->values()[y+1][x] / m_tableData->maxCalcedValue();
+				float z1 = (float)m_tableData->values()[y+1][x] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x1-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y1)-((i==1) ? MAP3DCELLSPACING : 0),z1);
 				glVertex3f(x1,(maxy-y1),z1+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
 				float y2 = ((float)((x+1.0) * maxy))/((float)m_tableData->xAxis().size()-1.0);
 				float x2 = ((float)y+1.0)/((float)m_tableData->yAxis().size()-1.0);
-				float z2 = (float)m_tableData->values()[y+1][x+1] / m_tableData->maxCalcedValue();
+				float z2 = (float)m_tableData->values()[y+1][x+1] / m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x2-((i==1) ? MAP3DCELLSPACING : 0),(maxy-y2)+((i==1) ? MAP3DCELLSPACING : 0),z2);
 				glVertex3f(x2,(maxy-y2),z2+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));
 
 				float y3 = ((float)(x+1) * maxy)/((float)m_tableData->xAxis().size()-1.0);
 				float x3 = ((float)y)/((float)m_tableData->yAxis().size()-1.0);
-				float z3 = (float)m_tableData->values()[y][x+1]/m_tableData->maxCalcedValue();
+				float z3 = (float)m_tableData->values()[y][x+1]/m_tableData->maxActualValue();
 				glColor4f(r,g,b,1);
 				//glVertex3f(x3+((i==1) ? MAP3DCELLSPACING : 0),(maxy-y3)+((i==1) ? MAP3DCELLSPACING : 0),z3);
 				glVertex3f(x3,(maxy-y3),z3+((i==0) ? 0.001 : ((i==2) ? -0.001 : 0)));

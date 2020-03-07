@@ -1363,7 +1363,7 @@ void TSBPComms::setLogFileName(QString filename)
 
 void TSBPComms::sendPacket(RequestClass req)
 {
-	qDebug() << "sendPacket called";
+	//qDebug() << "sendPacket called";
 	m_waitingForPacketResponse = true;
 	if (req.type == RETRIEVE_PAGE)
 	{
@@ -1411,7 +1411,7 @@ void TSBPComms::sendPacket(RequestClass req)
 	}
 	else if (req.type == GET_DATA)
 	{
-		qDebug() << "Getting data frame";
+		//qDebug() << "Getting data frame";
 		m_currentRequest = req;
 		//m_serialPort->requestPacket(QByteArray("H"),0);
 		QByteArray req = "O";

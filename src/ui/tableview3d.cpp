@@ -675,6 +675,7 @@ void TableView3D::showMapClicked()
 	if (m_tableMap)
 	{
 //		m_tableMap->show();
+
 	}
 	else
 	{

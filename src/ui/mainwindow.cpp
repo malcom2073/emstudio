@@ -757,6 +757,7 @@ void MainWindow::showTable(QString table)
 	else if (data3d)
 	{
 		TableView3D *view = new TableView3D();
+		connect(view,SIGNAL(show3DTable(unsigned short,Table3DData*)),this,SLOT(tableview3d_show3DTable(unsigned short,Table3DData*)));
 		connect(view,SIGNAL(destroyed(QObject*)),this,SLOT(rawDataViewDestroyed(QObject*)));
 		QString title;
 		DataBlock *block = dynamic_cast<DataBlock*>(data3d);
