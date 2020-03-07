@@ -1492,9 +1492,10 @@ void MainWindow::interrogationComplete()
 	if (!oneShown)
 	{
 		//No windows are currently shown. Show the emsMdiWindow
-		emsMdiWindow->setHidden(false);
-	}
 
+	}
+	emsMdiWindow->setHidden(true);
+	parameterView->setHidden(false);
 	parameterView->setActiveComms(emsComms);
 }
 void MainWindow::interrogateTaskStart(QString task, int sequence)
