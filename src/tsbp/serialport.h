@@ -9,50 +9,53 @@
 #ifndef SERIALPORT_H
 #define SERIALPORT_H
 
-#include <QThread>
-#include <QFile>
 #include <QDebug>
+#include <QElapsedTimer>
+#include <QFile>
 #include <QMutex>
 #include <QSerialPort>
 #include <QSerialPortInfo>
+#include <QThread>
+#include <QTimer>
 
-class SerialPort : public QThread
-{
+class SerialPort : public QObject {
     Q_OBJECT
 
 public:
-    SerialPort(QObject *parent=0);
+    SerialPort(QObject* parent = 0);
     ~SerialPort();
 
-    void setPort(const QString &portname);
-    void setBaud(int baudrate);
-    int openPort(const QString &portName, int baudrate, bool oddparity = true);
-    int writeBytes(const QByteArray &buf);
+    int serialBufferSize() { return m_readBuffer.size(); }
+    void setInterByteSendDelay(int milliseconds);
+    static QStringList ports();
+
+public slots:
+    int openPort(const QString& portName, int baudrate, bool oddparity = true);
+    int writeBytes(const QByteArray& buf);
     void readUntilEmpty();
+    int writePacket(const QByteArray& packet);
     void flush();
     void closePort();
-    int writePacket(const QByteArray &packet);
-    int bufferSize() { return m_queuedMessages.size(); }
-    int serialBufferSize() { return m_cycleBuffer.size(); }
-    void setInterByteSendDelay(int milliseconds);
-    void requestPacket(const QByteArray &request, int responselength);
-    static QStringList ports();
+    void requestPacket(const QByteArray& request, int responselength);
+
+private slots:
+    void onReadyRead();
+    void onTimeout();
+    void onError(QSerialPort::SerialPortError error_msg);
 
 private:
     void run();
     void openLogs();
 
-    int m_requestedBytes;
-    QSerialPort *m_port;
-    QMutex *m_serialLockMutex;
-    bool m_logsEnabled;
-    QString m_logDirectory;
-    int m_interByteSendDelay;
-    QList<QByteArray> m_queuedMessages;
-    QString m_logFileName;
+    QSerialPort* m_port;
+    QMutex* m_serialLockMutex;
     QString m_portName;
+    QByteArray m_readBuffer;
+    QTimer m_readTimeoutTimer;
+    int m_requestedBytes;
+    int m_interByteSendDelay;
     int m_baud;
-    QByteArray m_cycleBuffer;
+    quint16 m_packetsize;
 
 signals:
     void packetReceived(QByteArray packet);

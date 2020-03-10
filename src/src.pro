@@ -59,7 +59,7 @@ win32 {
     LIBS += -lGL -lGLU -lglut
     DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
     DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-    DEFINES += GIT_DATE=\""$$system(date)"\"
+    DEFINES += GIT_DATE=\""$$system(date --iso-8601=seconds)"\"
 }
 include(ui/ui.pri)
 include(tsbp/tsbp.pri)
