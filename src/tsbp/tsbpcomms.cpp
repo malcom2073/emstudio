@@ -1439,6 +1439,8 @@ void TSBPComms::sendPacket(RequestClass req)
 
 		//m_serialPort->requestPacket(QByteArray("H"),0);
 		QByteArray reqdata = "C";
+		reqdata.append(static_cast<char>(0x0));
+		reqdata.append(static_cast<char>(0x0));
 		qDebug() << "Sending update block:" << data.toHex() << offset << size;
 		m_currentRequest = req;
 		//m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
@@ -1821,14 +1823,32 @@ int TSBPComms::updateBlockInRam(unsigned short location,unsigned short offset, u
 int TSBPComms::updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
 {
 	QMutexLocker locker(&reqListMutex);
-	RequestClass req;
-	req.type = UPDATE_BLOCK_IN_FLASH;
-	req.sequencenumber = currentPacketNum++;
-	req.addArg(location,2);
-	req.addArg(offset,2);
-	req.addArg(size,2);
-	req.addArg(data,data.size());
-	m_reqList.append(req);
+	if (data.size() > 255)
+	{
+		for (int i=0;i<data.size();i+=255)
+		{
+			int cursize = (i+255 < data.size()) ? 255 :  data.size() - i;
+			RequestClass req;
+			req.type = UPDATE_BLOCK_IN_FLASH;
+			req.sequencenumber = currentPacketNum++;
+			req.addArg(location,2);
+			req.addArg(offset + i,2);
+			req.addArg(cursize,2);
+			req.addArg(data.mid(i,cursize),cursize);
+			m_reqList.append(req);
+		}
+	}
+	else
+	{
+		RequestClass req;
+		req.type = UPDATE_BLOCK_IN_FLASH;
+		req.sequencenumber = currentPacketNum++;
+		req.addArg(location,2);
+		req.addArg(offset,2);
+		req.addArg(size,2);
+		req.addArg(data,data.size());
+		m_reqList.append(req);
+	}
 	triggerNextSend();
 	return currentPacketNum-1;
 }
