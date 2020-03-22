@@ -37,8 +37,6 @@ public:
 	QString &getHomeDirectory() { return m_localHomeDir; }
 	QString &getSettingsFile() { return m_settingsFile; }
 private:
-	QList<QPair<QString,QString> > getArgs(int argc, char **argv);
-	void printHelp();
 
 	MainWindow *mainWindow;
 	PluginManager *pluginManager;
