@@ -61,6 +61,7 @@ public:
 	unsigned int yAxisPage() { return m_yAxisPage; }
 	unsigned int valuePage() { return m_valuePage; }
 private:
+	bool m_writesEnabled;
 	QList<double> m_xAxis;
 	QList<double> m_yAxis;
 	QList<QList<double> > m_values;

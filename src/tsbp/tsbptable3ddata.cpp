@@ -11,6 +11,7 @@
 TSBPTable3DData::TSBPTable3DData() :
 	Table3DData()
 {
+	m_writesEnabled = true;
 }
 void TSBPTable3DData::setXAxis(QByteArray data)
 {
@@ -270,7 +271,10 @@ void TSBPTable3DData::setCell(int row, int column,double val)
 		}
 	}
 	//setValues(result);
-	emit saveSingleData(m_valuePage,result,m_valueOffset,m_xDim * m_yDim * m_valueElementSize);
+	if (m_writesEnabled)
+	{
+		emit saveSingleData(m_valuePage,result,m_valueOffset,m_xDim * m_yDim * m_valueElementSize);
+	}
 }
 
 void TSBPTable3DData::setXAxis(int column,double val)
@@ -288,7 +292,10 @@ void TSBPTable3DData::setXAxis(int column,double val)
 			valbytes.append(((qRound(newval)) >> (((m_xAxisElementSize-1) - j) * 8)) & 0xFF);
 		}
 	}
-	emit saveSingleData(m_xAxisPage,valbytes,m_xAxisOffset,m_xAxisSize * m_xAxisElementSize);
+	if (m_writesEnabled)
+	{
+		emit saveSingleData(m_xAxisPage,valbytes,m_xAxisOffset,m_xAxisSize * m_xAxisElementSize);
+	}
 }
 
 void TSBPTable3DData::setYAxis(int row,double val)
@@ -306,7 +313,10 @@ void TSBPTable3DData::setYAxis(int row,double val)
 			valbytes.append(((qRound(newval)) >> (((m_yAxisElementSize-1) - j) * 8)) & 0xFF);
 		}
 	}
-	emit saveSingleData(m_yAxisPage,valbytes,m_yAxisOffset,m_yAxisSize * m_yAxisElementSize);
+	if (m_writesEnabled)
+	{
+		emit saveSingleData(m_yAxisPage,valbytes,m_yAxisOffset,m_yAxisSize * m_yAxisElementSize);
+	}
 }
 
 double TSBPTable3DData::maxCalcedXAxis() { return m_maxCalcedXAxis; }
@@ -325,12 +335,86 @@ double TSBPTable3DData::minActualValue() { return m_minActualValue; }
 
 void TSBPTable3DData::setWritesEnabled(bool enabled)
 {
-
+	m_writesEnabled = enabled;
 }
 
 void TSBPTable3DData::writeWholeLocation(bool ram)
 {
-
+	int axisindex = 0;
+	QByteArray xAxisBytes;
+	for (int i=0;i<(m_xAxisSize * m_xAxisElementSize);i+=m_xAxisElementSize)
+	{
+		float newval = m_xAxis[axisindex++];
+		newval -= m_xAxisTranslate;
+		newval /= m_xAxisScale;
+		if (!m_xAxisFloat)
+		{
+			for (int j=0;j<m_xAxisElementSize;j++)
+			{
+				xAxisBytes.append(((qRound(newval)) >> (((m_xAxisElementSize-1) - j) * 8)) & 0xFF);
+			}
+		}
+		else
+		{
+			char *valbytes = reinterpret_cast<char*>(&newval);
+			for (int i=0;i<4;i++)
+			{
+				xAxisBytes.append(valbytes[i]);
+			}
+		}
+	}
+	emit saveSingleData(m_xAxisPage,xAxisBytes,m_xAxisOffset,m_xAxisSize * m_xAxisElementSize);
+	axisindex = 0;
+	QByteArray yAxisBytes;
+	for (int i=0;i<(m_yAxisSize * m_yAxisElementSize);i+=m_yAxisElementSize)
+	{
+		float newval = m_yAxis[axisindex++];
+		newval -= m_yAxisTranslate;
+		newval /= m_yAxisScale;
+		if (!m_yAxisFloat)
+		{
+			for (int j=0;j<m_yAxisElementSize;j++)
+			{
+				yAxisBytes.append(((qRound(newval)) >> (((m_yAxisElementSize-1) - j) * 8)) & 0xFF);
+			}
+		}
+		else
+		{
+			char *valbytes = reinterpret_cast<char*>(&newval);
+			for (int i=0;i<4;i++)
+			{
+				yAxisBytes.append(valbytes[i]);
+			}
+		}
+	}
+	emit saveSingleData(m_yAxisPage,yAxisBytes,m_yAxisOffset,m_yAxisSize * m_yAxisElementSize);
+	QByteArray valueBytes;
+	for (int i=0;i<m_values.size();i++)
+	{
+		for (int j=0;j<m_values[i].size();j++)
+		{
+			float newval = static_cast<float>(m_values[i][j]);
+			newval -= m_valueTranslate;
+			newval /= m_valueScale;
+			if (!m_valueFloat)
+			{
+				for (int k=0;k<m_valueElementSize;k++)
+				{
+					valueBytes.append(((qRound(newval)) >> (((m_valueElementSize-1) - k) * 8)) & 0xFF);
+				}
+			}
+			else
+			{
+				char *valbytes = reinterpret_cast<char*>(&newval);
+				for (int i=0;i<4;i++)
+				{
+					valueBytes.append(valbytes[i]);
+				}
+			}
+		}
+	}
+	//setValues(result);
+	emit saveSingleData(m_valuePage,valueBytes,m_valueOffset,m_xDim * m_yDim * m_valueElementSize);
 }
 
 bool TSBPTable3DData::isRam()

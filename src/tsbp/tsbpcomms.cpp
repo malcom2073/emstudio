@@ -1421,6 +1421,48 @@ void TSBPComms::sendPacket(RequestClass req)
 		packet.append(crc >> 0);
 		m_serialPort->requestPacket(packet,0);
 	}
+	else if (req.type == UPDATE_BLOCK_IN_FLASH)
+	{
+		//cmd8 offset16 count16 valueN
+		//req.type = UPDATE_BLOCK_IN_FLASH;
+		//req.sequencenumber = currentPacketNum++;
+		//req.addArg(location,2);
+		//req.addArg(offset,2);
+		//req.addArg(size,2);
+		//req.addArg(data,data.size());
+		//m_reqList.append(req);
+		m_currentRequest = req;
+
+		int offset = req.args.at(1).toInt(); //Size
+		int size = req.args.at(2).toInt(); //Size
+		QByteArray data = req.args.at(3).toByteArray();
+
+		//m_serialPort->requestPacket(QByteArray("H"),0);
+		QByteArray reqdata = "C";
+		qDebug() << "Sending update block:" << data.toHex() << offset << size;
+		m_currentRequest = req;
+		//m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
+		//m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
+		reqdata.append(static_cast<char>(offset & 0xFF));
+		reqdata.append(static_cast<char>((offset >> 8) & 0xFF));
+		reqdata.append(static_cast<char>(size & 0xFF));
+		reqdata.append(static_cast<char>((size >> 8) & 0xFF));
+		reqdata.append(data);
+		uint32_t crc = Crc32_ComputeBuf(0,reqdata.data(),static_cast<size_t>(reqdata.size()));
+
+
+		QByteArray packet;
+		packet.append(static_cast<char>((reqdata.length() >> 8) & 0xFF));
+		packet.append(static_cast<char>(reqdata.length() & 0xFF));
+		packet.append(reqdata);
+		packet.append(static_cast<char>((crc >> 24) & 0xFF));
+		packet.append(static_cast<char>((crc >> 16) & 0xFF));
+		packet.append(static_cast<char>((crc >> 8) & 0xFF));
+		packet.append(static_cast<char>((crc >> 0) & 0xFF));
+		m_serialPort->requestPacket(packet,0);
+
+
+	}
 	else if (req.type == GET_DATA)
 	{
 		//qDebug() << "Getting data frame";
@@ -1569,10 +1611,10 @@ void TSBPComms::triggerNextSend()
 		else
 		{
 			//No requests, create a datalog request
-			RequestClass req;
-			req.type = GET_DATA;
-			req.sequencenumber = currentPacketNum++;
-			sendPacket(req);
+			//RequestClass req;
+			//req.type = GET_DATA;
+			//req.sequencenumber = currentPacketNum++;
+			//sendPacket(req);
 		}
 	}
 }
@@ -1595,8 +1637,13 @@ void TSBPComms::parseBuffer(QByteArray data)
 		{
 			QByteArray realtimedata = data.mid(1,data.size()-5);
 			//qDebug() << "Data:" << realtimedata;
-			emit dataLogPayloadReceived(realtimedata);
+			emit dataLogPayloadReceived(realtimedata,QByteArray());
 			currentPacketCount++;
+		}
+		else if (m_currentRequest.type == UPDATE_BLOCK_IN_FLASH)
+		{
+			qDebug() << "Update block response:" << data.toHex();
+
 		}
 		else if (m_currentRequest.type == RETRIEVE_PAGE)
 		{
@@ -1782,6 +1829,7 @@ int TSBPComms::updateBlockInFlash(unsigned short location,unsigned short offset,
 	req.addArg(size,2);
 	req.addArg(data,data.size());
 	m_reqList.append(req);
+	triggerNextSend();
 	return currentPacketNum-1;
 }
 

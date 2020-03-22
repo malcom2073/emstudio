@@ -303,7 +303,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 
 	timer = new QTimer(this);
 	connect(timer,SIGNAL(timeout()),this,SLOT(timerTick()));
-	timer->start(1000);
+	timer->start(5000);
 
 	guiUpdateTimer = new QTimer(this);
 	connect(guiUpdateTimer,SIGNAL(timeout()),this,SLOT(guiUpdateTimerTick()));
@@ -998,7 +998,7 @@ void MainWindow::menu_disconnectClicked()
 
 void MainWindow::timerTick()
 {
-	ui.ppsLabel->setText("PPS: " + QString::number(pidcount));
+	ui.ppsLabel->setText("PPS: " + QString::number(pidcount / 5));
 	pidcount = 0;
 }
 void MainWindow::settingsSaveClicked()
