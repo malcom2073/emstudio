@@ -10,49 +10,41 @@
 #include "QsLog.h"
 #include <QDir>
 #include <QString>
+#include <QCommandLineParser>
+#include <QProcessEnvironment>
+
 #define define2string_p(x) #x
 #define define2string(x) define2string_p(x)
 EMSCore *EMSCore::instancevar = 0;
 
 EMSCore::EMSCore(int &argc, char *argv[]) : QApplication(argc,argv)
 {
+	QCommandLineParser parser;
+	const QProcessEnvironment env(QProcessEnvironment::systemEnvironment());
+
 	//Init the logger
 	QsLogging::Logger& logger = QsLogging::Logger::instance();
 	logger.setLoggingLevel(QsLogging::TraceLevel);
+
 #ifdef Q_OS_WIN
-
-	//XP uses %%'s, 7 does not seem to. TODO: Figure out what 10 uses.
-	QString appDataDir = getenv("%AppData%");
-	if (appDataDir == "")
+	QString AppData(env.value("AppData").replace("\\","/"));
+	QString UserProfile(env.value("UserProfile").replace("\\","/"));
+	if (AppData.isEmpty())
 	{
-		appDataDir = getenv("AppData");
-		if (appDataDir == "")
-		{
-			appDataDir = getenv("%UserProfile%");
-			if (appDataDir == "")
-			{
-				appDataDir = getenv("UserProfile");
-			}
-		}
+		AppData = UserProfile;
 	}
-	appDataDir = appDataDir.replace("\\","/");
 
-	if (!QDir(appDataDir).exists("EMStudio"))
+	if (!QDir(AppData).exists("EMStudio"))
 	{
-		QDir(appDataDir).mkpath("EMStudio");
+		QDir(AppData).mkpath("EMStudio");
 	}
 	m_defaultsDir = QApplication::instance()->applicationDirPath();
 
-	m_settingsDir = appDataDir + "/" + "EMStudio";
-	m_localHomeDir = QString(getenv("%USERPROFILE%")).replace("\\","/");
-	if (m_localHomeDir == "")
-	{
-		m_localHomeDir = QString(getenv("USERPROFILE")).replace("\\","/");
-	}
-	m_localHomeDir += "/EMStudio";
+	m_settingsDir = AppData + "/" + "EMStudio";
+	m_localHomeDir = UserProfile + "/EMStudio";
 #else
 	//*nix is so much simpler.
-	QString appDataDir = getenv("HOME");
+	QString appDataDir = env.value("HOME");
 	if (!QDir(appDataDir).exists(".EMStudio"))
 	{
 		QDir(appDataDir).mkpath(".EMStudio");
@@ -63,7 +55,8 @@ EMSCore::EMSCore(int &argc, char *argv[]) : QApplication(argc,argv)
 	m_localHomeDir = appDataDir + "/" + "EMStudio";
 	//m_settingsFile = appDataDir + "/" + ".EMStudio/EMStudio-config.ini";
 #endif
-	QDir appDir(appDataDir);
+
+	QDir appDir(AppData);
 	if (appDir.exists())
 	{
 		if (!appDir.cd("EMStudio"))
@@ -81,10 +74,8 @@ EMSCore::EMSCore(int &argc, char *argv[]) : QApplication(argc,argv)
 		}
 	}
 
-
 	m_settingsFile = "settings.ini";
 	//TODO: Figure out proper directory names
-
 
 	if (!QFile::exists(m_localHomeDir + "/logs"))
 	{
@@ -92,65 +83,42 @@ EMSCore::EMSCore(int &argc, char *argv[]) : QApplication(argc,argv)
 	}
 	//Settings file should ALWAYS be the one in the settings dir. No reason to have it anywhere else.
 	m_settingsFile = m_settingsDir + "/EMStudio-config.ini";
-
-
-
-
-	const QString sLogPath(QDir(appDataDir + "/EMStudio/applogs").filePath("log.txt"));
+	const QString sLogPath(QDir(AppData + "/EMStudio/applogs").filePath("log.txt"));
 
 	QsLogging::DestinationPtr fileDestination(QsLogging::DestinationFactory::MakeFileDestination(sLogPath, true, 0, 100));
 	QsLogging::DestinationPtr debugDestination(QsLogging::DestinationFactory::MakeDebugOutputDestination());
 	logger.addDestination(debugDestination);
 	logger.addDestination(fileDestination);
 
-
-
-	QString port = "";
 	bool autoconnect = true;
-	QString plugin = "";
-	QList<QPair<QString,QString> > args = getArgs(argc,argv);
-	for (int i=0;i<args.size();i++)
-	{
-		if (args[i].first == "--dev" || args[i].first == "-d")
-		{
-			port = args[i].second;
-		}
-		else if (args[i].first == "--help" || args[i].first == "-h")
-		{
-			printHelp();
-			QApplication::exit(0);
-		}
-		else if (args[i].first == "--autoconnect" || args[i].first == "-a")
-		{
-			if (args[i].second.toLower() == "false")
-			{
-				autoconnect = false;
-			}
-		}
-		else if (args[i].first == "--plugin" || args[i].first == "-p")
-		{
-			plugin = args[i].second;
-		}
-		else
-		{
-			qDebug() << "Unknown command" << args[i].first;
-			printHelp();
-			QApplication::exit(0);
-		}
-	}
-	m_port = port;
-	m_plugin = plugin;
 
+	QCommandLineOption devOption(QStringList() << "d" << "dev", "Serial device", "file");
+	QCommandLineOption pluginOption(QStringList() << "p" << "plugin", "Extra plugin", "file");
+	QCommandLineOption autoconnectOption(QStringList() << "a" << "autoconnect", "Autoconnect", "file");
+
+	parser.addOptions({ devOption, pluginOption, autoconnectOption });
+	parser.addHelpOption();
+
+	parser.process(*this);
+	autoconnect = parser.isSet(autoconnectOption);
+
+	if (parser.isSet(devOption)) {
+		m_port = parser.value(devOption);
+	}
+
+	if (parser.isSet(pluginOption)) {
+		m_plugin = parser.value(pluginOption);
+	}
 
 }
 void EMSCore::run()
 {
 	mainWindow = new MainWindow();
-	if (m_port != "")
+	if (!m_port.isEmpty())
 	{
 		mainWindow->setDevice(m_port);
 	}
-	if (m_plugin == "")
+	if (!m_plugin.isEmpty())
 	{
 	//A specific plugin is specified, override the plugin manager's choice.
 	}
@@ -166,7 +134,7 @@ void EMSCore::run()
 	QString savedPluginPath = settings.value("filename","").toString();
 	settings.endGroup();
 	mainWindow->show();
-	/*if (savedPluginPath == "")
+	/*if (savedPluginPath.isEmpty())
 	{
 		PluginManager *manager = new PluginManager();
 		manager->show();
