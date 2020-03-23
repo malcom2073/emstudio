@@ -8,78 +8,64 @@
 
 #ifndef SERIALPORT_H
 #define SERIALPORT_H
-#include <QThread>
-#include <QFile>
+
 #include <QDebug>
+#include <QElapsedTimer>
+#include <QFile>
 #include <QMutex>
-#include <qglobal.h>
-#include "serial/serial.h"
-//#include "qserialport.h"
-//#ifdef Q_OS_WIN32
-//#include <windows.h>
-//#else
-//#define HANDLE int
-//#include <sys/file.h>
-//#include <sys/types.h>
-//#include <sys/stat.h>
-//#include <fcntl.h>
-//#include <termios.h>
-//#include <unistd.h>
-//#endif
-#include <vector>
-class SerialPort : public QThread
-{
+#include <QSerialPort>
+#include <QSerialPortInfo>
+#include <QThread>
+#include <QTimer>
+
+class SerialPort : public QObject {
 	Q_OBJECT
+
 public:
-    SerialPort(QObject *parent=0);
-    void setPort(QString portname);
-    void setBaud(int baudrate);
-    int openPort(QString portName,int baudrate,bool oddparity = true);
-    int writeBytes(QByteArray buf);
-    void readUntilEmpty();
-    void flush();
-    //HANDLE portHandle() { return m_portHandle; }
-    void closePort();
-    int writePacket(QByteArray packet);
-    int writeBytes(unsigned char *buf,int len);
-    //int readBytes(unsigned char *buf,int maxlen);
-    //void sendMessageForResponse(QByteArray header,QByteArray payload);
-    int bufferSize() { return m_queuedMessages.size(); }
-    int serialBufferSize() { return m_cycleBuffer.size(); }
-    void setInterByteSendDelay(int milliseconds);
-    void requestPacket(QByteArray request,int responselength);
+	SerialPort(QObject* parent = 0);
+	~SerialPort();
+
+	int serialBufferSize() { return m_readBuffer.size(); }
+	void setInterByteSendDelay(int milliseconds);
+	static QStringList ports();
+
+public slots:
+	int openPort(const QString& portName, int baudrate, bool oddparity = true);
+	int writeBytes(const QByteArray& buf);
+	void readUntilEmpty();
+	int writePacket(const QByteArray& packet);
+	void flush();
+	void closePort();
+	void requestPacket(const QByteArray& request, int responselength);
+
+private slots:
+	void onReadyRead();
+	void onTimeout();
+	void onError(QSerialPort::SerialPortError error_msg);
+
 private:
-    int m_requestedBytes;
-    void run();
-    serial::Serial *m_port;
-    QMutex *m_serialLockMutex;
-    void openLogs();
-    unsigned int m_packetErrorCount;
-    bool m_logsEnabled;
-    QString m_logDirectory;
-    bool m_inpacket;
-    bool m_inescape;
-    int m_interByteSendDelay;
-    QList<QByteArray> m_queuedMessages;
-    //QByteArray m_buffer;
-    //QFile *m_logInFile;
-    //QFile *m_logOutFile;
-    //QFile *m_logInOutFile;
-    QString m_logFileName;
-    QString m_portName;
-    int m_baud;
-    //HANDLE m_portHandle;
-    QByteArray m_cycleBuffer;
+	void run();
+	void openLogs();
+
+	QSerialPort* m_port;
+	QMutex* m_serialLockMutex;
+	QString m_portName;
+	QByteArray m_readBuffer;
+	QTimer m_readTimeoutTimer;
+	int m_requestedBytes;
+	int m_interByteSendDelay;
+	int m_baud;
+	quint16 m_packetsize;
 
 signals:
-    void packetReceived(QByteArray packet);
-    void parseBuffer(QByteArray buffer);
-    void dataWritten(QByteArray data);
-    void bytesReady(QByteArray buffer);
-    void connected();
-    void unableToConnect(QString error);
-    void disconnected();
-    void error(QString error);
+	void packetReceived(QByteArray packet);
+	void parseBuffer(QByteArray buffer);
+	void dataWritten(QByteArray data);
+	void bytesReady(QByteArray buffer);
+	void connected();
+	void unableToConnect(QString error);
+	void disconnected();
+	void error(QString error);
 };
 
 #endif // SERIALPORT_H

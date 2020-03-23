@@ -4,7 +4,7 @@
 #
 #-------------------------------------------------
 
-QT       += core gui opengl printsupport widgets quick qml
+QT = core gui opengl printsupport widgets quick qml serialport
 
 TARGET = ../../build/bin/emstudio
 TEMPLATE = app
@@ -18,7 +18,6 @@ DEPENDPATH += $$PWD/../lib/core
 
 include(lib/QsLog/QsLog.pri)
 include(lib/QHexEdit/QHexEdit.pri)
-include (lib/serial/serial.pri)
 win32 {
 	message("Building for win32")
 	#DEFINES += GIT_COMMIT=$$system("c:/progra~1/git/bin/git.exe" describe --dirty=-DEV --always)
@@ -60,7 +59,7 @@ win32 {
 	LIBS += -lGL -lGLU -lglut
 	DEFINES += GIT_COMMIT=$$system(git describe --dirty=-DEV --always)
 	DEFINES += GIT_HASH=$$system(git log -n 1 --pretty=format:%H)
-	DEFINES += GIT_DATE=\""$$system(date)"\"
+	DEFINES += GIT_DATE=\""$$system(date --iso-8601=seconds)"\"
 }
 include(ui/ui.pri)
 include(tsbp/tsbp.pri)
