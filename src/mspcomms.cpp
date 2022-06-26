@@ -664,6 +664,15 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                                 {
                                     data->setElementType(ConfigData::FLOAT_ELEMENT);
                                 }
+                                else if (issigned)
+                                {
+                                    data->setElementType(ConfigData::SIGNED_ELEMENT);
+                                }
+                                else
+                                {
+                                    data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+                                }
+
                                 m_tableDataMap.insert(linesplit[0].trimmed(),data);
 
                             }
@@ -680,6 +689,14 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                                 if (isfloat)
                                 {
                                     data->setElementType(ConfigData::FLOAT_ELEMENT);
+                                }
+                                else if (issigned)
+                                {
+                                    data->setElementType(ConfigData::SIGNED_ELEMENT);
+                                }
+                                else
+                                {
+                                    data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                                 }
 
                                 data->setSize(format.mid(1,format.size()-2).trimmed().toInt());

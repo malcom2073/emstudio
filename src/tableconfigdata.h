@@ -31,10 +31,11 @@ public:
     void setElementSize(unsigned short size);
     void setXSize(unsigned short size) { m_xSize = size; }
     void setYSize(unsigned short size) { m_ySize = size; }
-    void setCalc(QList<QPair<QString,double> >list) {}
+    void setCalc(QList<QPair<QString,double> >list) {m_calcList = list;}
     QByteArray getOrig() { return m_origBytes; }
 
 private:
+    QList<QPair<QString,double> > m_calcList;
     QByteArray m_origBytes;
     QString m_name;
     unsigned int m_offset;

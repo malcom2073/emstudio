@@ -10,6 +10,7 @@
 #include <QDebug>
 //#include "tsbpconfigdata.h"
 #include "arrayconfigdata.h"
+#include "tableview3d.h"
 EMSTest::EMSTest(QObject *parent)
     : QObject{parent}
 {
@@ -139,11 +140,11 @@ void EMSTest::interrogationCompleted()
     qDebug() << "Finished interrogation!";
     // At this point, all the memory in m_comms should be valid and equal to the msq from TS.
     //TSBPConfigData *data = qobject_cast<TSBPConfigData*>(m_comms->getConfigData("lambdaTable"));
-    ArrayConfigData *data = m_comms->getArrayConfigData("map_samplingWindowBins");
+    ArrayConfigData *data = m_comms->getArrayConfigData("lambdaLoadBins");
 
     if (!data)
     {
-        qDebug() << "Unable to cast data for mapErrorDetectionTooHigh";
+        qDebug() << "Unable to cast data for lambdaLoadBins";
         return;
     }
     qDebug() << "Got scalar!" << "size" << data->size() << "offset" << data->offset() << "value:" << data->getValue(0);
@@ -173,6 +174,20 @@ void EMSTest::interrogationCompleted()
     QByteArray newbytes = tdata->getBytes();
     qDebug() << "Org: " << origbytes.toHex();
     qDebug() << "New: " << newbytes.toHex();
+    //x: lambdaRpmBins
+    //y: lambdaLoadBins
+    //z: lambdaTable
+    ArrayConfigData *xdata = m_comms->getArrayConfigData("lambdaRpmBins");
+    ArrayConfigData *ydata = m_comms->getArrayConfigData("lambdaLoadBins");
+    TableConfigData *zdata = m_comms->getTableConfigData("lambdaTable");
+    if (!xdata || !ydata || !zdata)
+    {
+        qDebug() << "Unable to cast data for 3d table!";
+        return;
+    }
+    TableView3D *table = new TableView3D();
+    table->setData("Lambda",xdata,ydata,zdata);
+    table->show();
 
 
 }

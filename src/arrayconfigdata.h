@@ -33,9 +33,10 @@ public:
     QVariant getValue(int index);
     void setElementSize(unsigned short size);
     void setSize(unsigned short size);
-    void setCalc(QList<QPair<QString,double> >list) {}
+    void setCalc(QList<QPair<QString,double> >list) {m_calcList = list;}
     unsigned int offset() { return m_offset; }
 private:
+    QList<QPair<QString,double> > m_calcList;
     QString m_name;
     unsigned int m_offset;
     unsigned short m_elementSize;

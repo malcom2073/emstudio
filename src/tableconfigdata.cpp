@@ -17,6 +17,17 @@ void TableConfigData::setData(QByteArray data)
         {
             QByteArray valarray = data.mid(i,m_elementSize);
             float outval = *reinterpret_cast<float*>(valarray.data());
+            for (int c = 0; c< m_calcList.size();c++)
+            {
+                if (m_calcList.at(c).first == "add")
+                {
+                    val = val + m_calcList.at(c).second;
+                }
+                if (m_calcList.at(c).first == "mult")
+                {
+                    val = val * m_calcList.at(c).second;
+                }
+            }
             newvals.append(outval);
             if (newvals.length() >= m_xSize)
             {
@@ -31,6 +42,17 @@ void TableConfigData::setData(QByteArray data)
             for (int j=0;j<m_elementSize;j++)
             {
                 val += (((unsigned char)data[(i + j)]) << (((m_elementSize-1) - j) * 8));
+            }
+            for (int c = 0; c< m_calcList.size();c++)
+            {
+                if (m_calcList.at(c).first == "add")
+                {
+                    val = val + m_calcList.at(c).second;
+                }
+                if (m_calcList.at(c).first == "mult")
+                {
+                    val = val * m_calcList.at(c).second;
+                }
             }
             newvals.append(val);
             if (newvals.length() >= m_xSize)

@@ -19,6 +19,7 @@
 //#include "tablemap3d.h"
 #include <QTimer>
 #include "arrayconfigdata.h"
+#include "tableconfigdata.h"
 class TableView3D : public QWidget
 {
     Q_OBJECT
@@ -28,7 +29,7 @@ public:
     ~TableView3D();
     //void setMetaData(Table3DMetaData metadata);
     //bool setData(unsigned short locationid,DataBlock *data);
-    bool setData(QString name,ArrayConfigData *x,ArrayConfigData *y,ArrayConfigData *z);
+    bool setData(QString name,ArrayConfigData *x,ArrayConfigData *y,TableConfigData *z);
     void passDatalog(QVariantMap data);
 private:
     bool m_firstKeypress;
@@ -41,7 +42,7 @@ private:
     bool metaDataValid;
     ArrayConfigData *m_xAxis;
     ArrayConfigData *m_yAxis;
-    ArrayConfigData *m_zAxis;
+    TableConfigData *m_zAxis;
     TSBPTable3DData *tableData;
     unsigned short m_locationId;
     QString m_currentValue;

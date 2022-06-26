@@ -928,8 +928,8 @@ bool TableView3D::updateTable()
     //ui.tableWidget->setMaxValues(tableData->maxCalcedXAxis(),tableData->maxCalcedYAxis(),tableData->maxCalcedValue());
     //ui.tableWidget->horizontalHeader()->hide();
     //ui.tableWidget->verticalHeader()->hide();
-    ui.tableWidget->setRowCount(tableData->rows());
-    ui.tableWidget->setColumnCount(tableData->columns());
+    //ui.tableWidget->setRowCount(tableData->rows());
+    //ui.tableWidget->setColumnCount(tableData->columns());
     /*if (tableData->yAxis().size() == 0 || tableData->xAxis().size() == 0)
     {
         //Invalid/empty data
@@ -1027,15 +1027,60 @@ bool TableView3D::updateTable()
         first = tableData->xAxis()[i];
         ui.tableWidget->setXAxis(i,formatNumber(tableData->xAxis()[i],m_metaData.xDp));
     }*/
+    ui.tableWidget->setRowCount(m_xAxis->size());
+    ui.tableWidget->setColumnCount(m_yAxis->size());
+    double xmin=0;
+    double xmax=0;
     for (int x=0;x<m_xAxis->size();x++)
     {
-        ui.tableWidget->setXAxis(x,QString::number(m_xAxis->getValue(x).toFloat()));
+        double val = m_xAxis->getValue(x).toFloat();
+        if (val < xmin)
+        {
+            xmin = val;
+        }
+        if (val > xmax)
+        {
+            xmax = val;
+        }
+        ui.tableWidget->setXAxis(x,QString::number(val));
     }
+    double ymin=0;
+    double ymax=0;
     for (int y=0;y<m_yAxis->size();y++)
     {
-        ui.tableWidget->setXAxis(y,QString::number(m_yAxis->getValue(y).toFloat()));
+        double val = m_yAxis->getValue(y).toFloat();
+        if (val < ymin)
+        {
+            ymin = val;
+        }
+        if (val > ymax)
+        {
+            ymax = val;
+        }
+        ui.tableWidget->setYAxis((m_yAxis->size()-1)-y,QString::number(val));
     }
-    m_valueMax = tableData->values()[0][0];
+    //m_valueMax = tableData->values()[0][0];
+    double zmin=0;
+    double zmax=0;
+
+    for (int row=0;row<m_zAxis->xSize();row++)
+    {
+        for (int col=0;col<m_zAxis->ySize();col++)
+        {
+            double val = m_zAxis->getValue(row,col).toFloat();
+            if (val < zmin)
+            {
+                zmin = val;
+            }
+            if (val > zmax)
+            {
+                zmax = val;
+            }
+            ui.tableWidget->setItem((m_zAxis->xSize()-1)-row,col,QString::number(val));
+        }
+    }
+    ui.tableWidget->setMaxValues(xmax,ymax,zmax);
+    /*
     for (int row=0;row<tableData->rows();row++)
     {
         for (int col=0;col<tableData->columns();col++)
@@ -1064,12 +1109,12 @@ bool TableView3D::updateTable()
                 //ui.tableWidget->item((tableData->rows()-1)-((row)),(col)+1)->setBackgroundColor(QColor::fromRgb(255,255-(255*((val-((tableData->maxCalcedValue()/4.0)*3))/(tableData->maxCalcedValue()/4.0))),0));
             }
         }
-    }
+    }*/
     for (int i=0;i<selectedlist.size();i++)
     {
         //ui.tableWidget->item(selectedlist[i].first,selectedlist[i].second)->setSelected(true);
     }
-    ui.tableWidget->setMaxValues(m_xAxisMax,m_yAxisMax,m_valueMax);
+    //ui.tableWidget->setMaxValues(m_xAxisMax,m_yAxisMax,m_valueMax);
 
 
     selectedlist.clear();
@@ -1083,7 +1128,7 @@ void TableView3D::setMetaData(Table3DMetaData metadata)
     m_metaData = metadata;
     metaDataValid = true;
 }*/
-bool TableView3D::setData(QString name,ArrayConfigData *x,ArrayConfigData *y,ArrayConfigData *z)
+bool TableView3D::setData(QString name,ArrayConfigData *x,ArrayConfigData *y,TableConfigData *z)
 //bool TableView3D::setData(QString name,TSBPTable3DData *data)
 {
     m_xAxis = x;
