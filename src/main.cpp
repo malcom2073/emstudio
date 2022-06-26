@@ -14,6 +14,8 @@
 #include "mspcomms.h"
 #include "parameterview.h"
 #include "emstest.h"
+#include "tableview3d.h"
+
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -73,8 +75,11 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    EMSTest *test = new EMSTest();
-    test->startTest();
+
+    TableView3D *view = new TableView3D();
+    view->show();
+    //EMSTest *test = new EMSTest();
+    //test->startTest();
    // ParameterView *param = new ParameterView();
    // param->setActiveComms(comm);
     //param->show();

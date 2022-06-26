@@ -9,7 +9,7 @@ EMSTest::EMSTest(QObject *parent)
 
 bool EMSTest::testSimple2DWrite()
 {
-    // Tests to make sure conversion from bytes to array then back to bytes works.
+    // Tests to make sure data modification works
     QByteArray inputbytes = QByteArray::fromHex("0000484400c0d24400b020450010584500b887450068a3450010bf4500c0da45");
     QByteArray outputbytes = QByteArray::fromHex("0000484400c0d24400002f450010584500b887450068a3450010bf4500c0da45");
     QList<float> outputvals;

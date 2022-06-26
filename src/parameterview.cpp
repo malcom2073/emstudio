@@ -12,7 +12,7 @@
 #include <QLineEdit>
 #include <QScrollArea>
 #include <QCloseEvent>
-#include <parameterwidget.h>
+#include "parameterwidget.h"
 //#include "QsLog.h"
 
 ParameterView::ParameterView(QWidget *parent) : QWidget(parent)

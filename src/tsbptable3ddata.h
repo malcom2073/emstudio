@@ -13,15 +13,16 @@
 #include <QObject>
 #include "tabledata.h"
 #include "table3dmetadata.h"
+#include "tsbpconfigdata.h"
 class TSBPTable3DData : public QObject
 {
     Q_OBJECT
 public:
     explicit TSBPTable3DData();
 
-    void setXAxis(QByteArray data);
-    void setYAxis(QByteArray data);
-    void setValues(QByteArray data);
+    void setXAxis(TSBPConfigData *data);
+    void setYAxis(TSBPConfigData *data);
+    void setValues(TSBPConfigData *data);
     void setXAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat,float min, float max);
     void setYAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat,float min, float max);
     void setValueMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat,unsigned short xdim,unsigned short ydim,float min, float max);
@@ -63,6 +64,9 @@ public:
     unsigned int yAxisPage() { return m_yAxisPage; }
     unsigned int valuePage() { return m_valuePage; }
 private:
+    TSBPConfigData *m_xAxisData;
+    TSBPConfigData *m_yAxisData;
+    TSBPConfigData *m_zAxisData;
     bool m_writesEnabled;
     bool m_validXAxisMetadata;
     bool m_validYAxisMetadata;

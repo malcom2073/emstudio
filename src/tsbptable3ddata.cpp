@@ -16,10 +16,16 @@ TSBPTable3DData::TSBPTable3DData() :
     m_validZAxisMetadata = false;
     m_writesEnabled = true;
 }
-void TSBPTable3DData::setXAxis(QByteArray data)
+void TSBPTable3DData::setXAxis(TSBPConfigData *data)
 {
-//	axisdata = data;
+    m_xAxisData = data;
     m_xAxis.clear();
+    for (int i=0;i<m_xAxisData->size();i++)
+    {
+        m_xAxis.append(m_xAxisData->getValue(i));
+    }
+//	axisdata = data;
+/*
     for (unsigned int i=0;i<(m_xAxisSize * m_xAxisElementSize);i+=m_xAxisElementSize)
     {
         double val = 0;
@@ -54,13 +60,19 @@ void TSBPTable3DData::setXAxis(QByteArray data)
             }
         }
         m_xAxis.append(val);
-    }
+    }*/
     emit update();
 }
 
-void TSBPTable3DData::setYAxis(QByteArray data)
+void TSBPTable3DData::setYAxis(TSBPConfigData *data)
 {
+    m_yAxisData = data;
     m_yAxis.clear();
+    for (int i=0;i<m_yAxisData->size();i++)
+    {
+        m_yAxis.append(m_yAxisData->getValue(i));
+    }
+    /*
     for (unsigned int i=0;i<(m_yAxisSize * m_yAxisElementSize);i+=m_yAxisElementSize)
     {
         double val = 0;
@@ -94,13 +106,15 @@ void TSBPTable3DData::setYAxis(QByteArray data)
             }
         }
         m_yAxis.append(val);
-    }
+    }*/
     emit update();
 }
 
-void TSBPTable3DData::setValues(QByteArray data)
+void TSBPTable3DData::setValues(TSBPConfigData *data)
 {
+    m_zAxisData = data;
     m_values.clear();
+    /*
     QList<double> newvals;
     for (unsigned int i=0;i<(m_valueSize * m_valueElementSize);i+=m_valueElementSize)
     {
@@ -142,7 +156,7 @@ void TSBPTable3DData::setValues(QByteArray data)
             newvals.clear();
         }
     }
-    int stopper = 1;
+    int stopper = 1;*/
     emit update();
 }
 void TSBPTable3DData::setXAxisMetaData(int pagenum,unsigned int offset, unsigned int totalsize,int elementsize,float scale,float translate,bool issigned,bool isfloat,float min, float max)
@@ -203,15 +217,15 @@ void TSBPTable3DData::setData(unsigned short locationid,bool isflashonly,QByteAr
 {
     if (m_validXAxisMetadata)
     {
-        setXAxis(payload);
+        //setXAxis(payload);
     }
     if (m_validYAxisMetadata)
     {
-        setYAxis(payload);
+       // setYAxis(payload);
     }
     if (m_validZAxisMetadata)
     {
-        setValues(payload);
+        //setValues(payload);
     }
 }
 

@@ -20,11 +20,13 @@ SOURCES += \
     src/parameterview.cpp \
     src/parameterwidget.cpp \
     src/scalarparam.cpp \
+    src/tableview3d.cpp \
     src/tsbpconfigdata.cpp \
     src/tsbpdatapacketdecoder.cpp \
     src/tsbpmemorymetadata.cpp \
     src/tsbptable2ddata.cpp \
-    src/tsbptable3ddata.cpp
+    src/tsbptable3ddata.cpp \
+    src/tableviewnew3d.cpp
 
 HEADERS += \
     src/comboparam.h \
@@ -53,19 +55,23 @@ HEADERS += \
     src/table2dmetadata.h \
     src/table3dmetadata.h \
     src/tabledata.h \
+    src/tableview3d.h \
     src/tsbpconfigdata.h \
     src/tsbpdatapacketdecoder.h \
     src/tsbpheaders.h \
     src/tsbpmemorymetadata.h \
     src/tsbptable2ddata.h \
-    src/tsbptable3ddata.h
+    src/tsbptable3ddata.h \
+    src/tableviewnew3d.h
 
 FORMS += \
+    src/ui/tableview3d.ui \
     src/ui/comboparam.ui \
     src/ui/mainwindow.ui \
     src/ui/parameterview.ui \
     src/ui/parameterwidget.ui \
-    src/ui/scalarparam.ui
+    src/ui/scalarparam.ui \
+    src/ui/tableviewnew3d.ui
 OTHER_FILES += LICENSE.md README.md
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

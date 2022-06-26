@@ -68,6 +68,23 @@ void TSBPConfigData::setData(QByteArray data)
         if (m_size == 0)
         {
             //It's a 3d array
+            QList<double> newvals;
+            QVariantList m_axis;
+            for (unsigned int i=m_offset;i<(m_offset + (m_elementSize * m_xsize * m_ysize));i+=m_elementSize)
+            {
+                double val = 0;
+                if (m_elementType == ConfigData::FLOAT_ELEMENT)
+                {
+                    QByteArray valarray = data.mid(i,m_elementSize);
+                    float outval = *reinterpret_cast<float*>(valarray.data());
+                        m_axis.append(outval);
+                }
+                else
+                {
+                    // Not currently handled!
+                }
+            }
+            m_value = m_axis;
         }
         else
         {
@@ -130,6 +147,8 @@ double TSBPConfigData::getValue(unsigned short index)
 }
 double TSBPConfigData::getValue(unsigned short x,unsigned short y)
 {
+    QList<QVariant> vallist = m_value.toList();
+    return vallist.at((y*m_xsize) + x).toFloat();
     return 0.0;
 }
 
