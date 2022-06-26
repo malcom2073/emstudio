@@ -11,6 +11,7 @@ CONFIG += c++17
 SOURCES += \
     comboparam.cpp \
     datafield.cpp \
+    emstest.cpp \
     main.cpp \
     mainwindow.cpp \
     memorylocation.cpp \
@@ -33,6 +34,7 @@ HEADERS += \
     datatype.h \
     dialogfield.h \
     dialogitem.h \
+    emstest.h \
     formattype.h \
     lookupmetadata.h \
     mainwindow.h \

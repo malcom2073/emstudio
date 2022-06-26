@@ -21,7 +21,14 @@ public:
     {
         ARRAY,
         VALUE,
-        ENUM
+        ENUM,
+        FLOAT
+    };
+    enum ElementType
+    {
+        UNSIGNED_ELEMENT,
+        SIGNED_ELEMENT,
+        FLOAT_ELEMENT
     };
 
     virtual void setData(QByteArray data)=0;

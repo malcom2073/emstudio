@@ -438,7 +438,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
 
                     pagenumint = pagenum.toInt();
                     //QStringList split = pageIdent[pagenumint].split("\\");
-                    int pagesize = pageSize[pagenumint];
+                    int pagesize = pageSize[pagenumint-1];
                     //bool ok = false;
                     //QString pagestr = QString("0" + split[split.size()-1].replace("\"",""));
                     //pagenumint = pagestr.toInt(&ok,16);
@@ -452,7 +452,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                 }
                 //qDebug() << "Page Num:" << pagenum;
             }
-            else if (!line.startsWith(";"))
+            else if (!line.trimmed().startsWith(";"))
             {
                 if (line.trimmed().startsWith("pageIdentifier"))
                 {
@@ -505,77 +505,63 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         if (linevalsplit[0].trimmed() == "scalar")
                         {
                             //Scalar
-                            scalarclass scalar;
+                            TSBPConfigData *data = new TSBPConfigData();
                             //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
-                            scalar.offset = linevalsplit[2].trimmed().toInt();
+                            data->setOffset(linevalsplit[2].trimmed().toInt());
                             //if (linevalsplit[0].trimmed() == "scalar")
                             //{
-                                scalar.type = "scalar";
-                                if (linevalsplit[4].trimmed().startsWith("."))
-                                {
-                                    scalar.scale = QString("0").append(linevalsplit[4].trimmed()).toFloat();
-                                }
-                                else
-                                {
-                                    scalar.scale = linevalsplit[4].trimmed().toFloat();
-                                }
-                                if (linevalsplit[5].trimmed().startsWith("."))
-                                {
-                                    scalar.translate = QString("0").append(linevalsplit[5].trimmed()).toFloat();
-                                }
-                                else
-                                {
-                                    scalar.translate = linevalsplit[5].trimmed().toFloat();
-                                }
-                            //}
-                            //else if (linevalsplit[0].trimmed() == "array")
-                            //{
-                            //	scalar.type = "array";
-                            //}
-                            //else if (linevalsplit[0].trimmed() == "bits")
-                            //{
-                            //	scalar.type == "bits";
-                            //}
+                            data->setType(ConfigData::VALUE);
+                            QList<QPair<QString,double> > calclist;
+                            if (linevalsplit[4].trimmed().startsWith("."))
+                            {
+                                calclist.append(QPair<QString,double>("mult",QString("0").append(linevalsplit[4].trimmed()).toFloat()));
+                            }
+                            else
+                            {
+                                calclist.append(QPair<QString,double>("mult",linevalsplit[4].trimmed().toFloat()));
+                            }
+                            if (linevalsplit[5].trimmed().startsWith("."))
+                            {
+                                calclist.append(QPair<QString,double>("add",QString("0").append(linevalsplit[5].trimmed()).toFloat()));
+                            }
+                            else
+                            {
+                                calclist.append(QPair<QString,double>("add",linevalsplit[5].trimmed().toFloat()));
+                            }
+                            data->setCalc(calclist);
                             if (linevalsplit[1].trimmed() == "S16")
                             {
-                                scalar.size = 2;
-                                scalar.signedval = true;
+                                data->setElementSize(2);
                             }
                             else if (linevalsplit[1].trimmed() == "U08")
                             {
-                                scalar.size = 1;
-                                scalar.signedval = false;
+                                data->setElementSize(1);
                             }
                             else if (linevalsplit[1].trimmed() == "U16")
                             {
-                                scalar.size = 2;
-                                scalar.signedval = false;
+                                data->setElementSize(2);
                             }
                             else if (linevalsplit[1].trimmed() == "U32")
                             {
-                                scalar.size = 4;
-                                scalar.signedval = false;
+                                data->setElementSize(4);
                             }
                             else if (linevalsplit[1].trimmed() == "S32")
                             {
-                                scalar.size = 4;
-                                scalar.signedval = true;
+                                data->setElementSize(4);
                             }
-                            scalarMap[linesplit[0].trimmed()] = scalar;
+                            else if (linevalsplit[1].trimmed() == "F32")
+                            {
+                                data->setElementSize(4);
+                                data->setType(ConfigData::FLOAT);
+                            }
+                            //scalarMap[linesplit[0].trimmed()] = scalar;
 
-                            TSBPConfigData *data = new TSBPConfigData();
+
                             connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
                             connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
-                            data->setElementSize(scalar.size);
                             data->setSize(1);
                             data->setName(linesplit[0].trimmed());
-                            data->setOffset(scalar.offset);
                             data->setLocationId(pagenumint);
-                            data->setType(ConfigData::VALUE);
-                            QList<QPair<QString,double> > calclist;
-                            calclist.append(QPair<QString,double>("add",scalar.translate));
-                            calclist.append(QPair<QString,double>("mult",scalar.scale));
-                            data->setCalc(calclist);
                             m_configDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
                             //pageMap[pagenum][linesplit[0].trimmed()] = scalar;
@@ -607,25 +593,33 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         }
                         else if (linevalsplit[0].trimmed() == "array")
                         {
+                            TSBPConfigData *data = new TSBPConfigData();
+                            data->setType(ConfigData::ARRAY);
                             //arrayMap
+                            unsigned int offset = linevalsplit[2].trimmed().toInt();
+                            data->setOffset(offset);
                             arrayclass array;
-                            array.offset = linevalsplit[2].trimmed().toInt();
+                            //array.offset =
+                            QList<QPair<QString,double> > calclist;
                             if (linevalsplit[5].trimmed().startsWith("."))
                             {
-                                array.scale = QString("0").append(linevalsplit[5].trimmed()).toFloat();
+                                calclist.append(QPair<QString,double>("mult",QString("0").append(linevalsplit[5].trimmed()).toFloat()));
                             }
                             else
                             {
-                                array.scale = linevalsplit[5].trimmed().toFloat();
+                                calclist.append(QPair<QString,double>("mult",linevalsplit[5].trimmed().toFloat()));
                             }
                             if (linevalsplit[6].trimmed().startsWith("."))
                             {
-                                array.translate = QString("0").append(linevalsplit[6].trimmed()).toFloat();
+                                calclist.append(QPair<QString,double>("add",QString("0").append(linevalsplit[6].trimmed()).toFloat()));
                             }
                             else
                             {
-                                array.translate = linevalsplit[6].trimmed().toFloat();
+                                calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
                             }
+                            data->setCalc(calclist);
+                            data->setName(linesplit[0].trimmed());
+                            data->setLocationId(pagenumint);
                             array.isfloat = false;
                             array.unit = linevalsplit[1].trimmed();
                             QString format = linevalsplit[3].trimmed();
@@ -633,47 +627,49 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                             {
                                 array.isSigned = true;
                                 array.elementSize = 2;
+                                data->setElementSize(2);
                             }
                             else if (linevalsplit[1].trimmed() == "U08")
                             {
                                 array.isSigned = false;
                                 array.elementSize = 1;
+                                data->setElementSize(1);
                             }
                             else if (linevalsplit[1].trimmed() == "U16")
                             {
                                 array.isSigned = false;
                                 array.elementSize = 2;
+                                data->setElementSize(2);
                             }
                             else if (linevalsplit[1].trimmed() == "U32")
                             {
                                 array.isSigned = false;
                                 array.elementSize = 4;
+                                data->setElementSize(4);
                             }
                             else if (linevalsplit[1].trimmed() == "S32")
                             {
                                 array.isSigned = true;
                                 array.elementSize = 4;
+                                data->setElementSize(4);
                             }
                             else if (linevalsplit[1].trimmed() == "F32")
                             {
                                 array.isSigned = true;
                                 array.elementSize = 4;
                                 array.isfloat = true;
+                                data->setElementSize(4);
+                                data->setElementType(ConfigData::FLOAT_ELEMENT);
                             }
                             if (format.contains("x"))
                             {
                                 //It's a 3d array.
-                                array.is2d = false;
-                                array.xdim = format.mid(1,format.size()-2).split("x")[0].toInt();
-                                array.ydim = format.mid(1,format.size()-2).split("x")[1].toInt();
-                                array.size = array.xdim * array.ydim;
+                                data->setSize(format.mid(1,format.size()-2).split("x")[0].toInt(),format.mid(1,format.size()-2).split("x")[1].toInt());
                             }
                             else
                             {
                                 array.is2d = true;
-
-                                array.xdim = format.mid(1,format.size()-2).trimmed().toInt();
-                                array.size = array.xdim;
+                                data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
                                 //data->setAxisMetaData(elementsize,array.scale,array.translate,issigned);
                                 //m_2dTableData[linesplit[0].trimmed()] = data;
                             }
@@ -688,7 +684,10 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                                 array.min = -65535;
                                 array.max = 65535;
                             }
+
                             arrayMap[linesplit[0].trimmed()] = array;
+                            m_configDataMap[linesplit[0].trimmed()] = data;
+                            m_configNameList.append(linesplit[0].trimmed());
                             //pageArrayMap[pagenum][linesplit[0].trimmed()] = array;
                         }
                     }
@@ -817,7 +816,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
 
 
     //Setup the 3d tables
-    for (QMap<QString,Table*>::const_iterator i=tableMap.constBegin();i!=tableMap.constEnd();i++)
+    /*for (QMap<QString,Table*>::const_iterator i=tableMap.constBegin();i!=tableMap.constEnd();i++)
     {
         //X is axis
         //Y is values
@@ -975,7 +974,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
         {
             m_2dTableData[i.key()] = curve;
         }
-    }
+    }*/
 
 
 
@@ -1021,7 +1020,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
             //b.setType(j.value().type);
             //configmap[j.key()] = b;
             //blocklist.append(b);
-            m_configDataMap[j.key()] = data;
+            //m_configDataMap[j.key()] = data;
             m_configNameList.append(j.key());
 
 
@@ -1610,7 +1609,7 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length)
 {
     //QMutexLocker locker(&reqListMutex);
 
-    for (int i=0;i<m_pageSizeList.at(0);i++)
+    for (int i=0;i<m_pageSizeMap[1];i++)
     {
         RequestClass req;
         req.type = RETRIEVE_PAGE;
@@ -1618,7 +1617,7 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length)
         emit interrogateTaskStart(QString("Location ID ") + QString(pagereqstring),currentPacketNum-1);
         req.addArg(pagereqstring);
         req.addArg(i);
-        req.addArg(((20000 - i >= 256) ? 256 : 20000-i));
+        req.addArg(((m_pageSizeMap[1] - i >= 256) ? 256 : m_pageSizeMap[1]-i));
         i += 255;
         m_reqList.append(req);
     }
@@ -1755,6 +1754,11 @@ void MSPComms::parseBuffer(QByteArray data)
                 for (QMap<QString,TSBPTable2DData*>::const_iterator i=m_2dTableData.constBegin();i!=m_2dTableData.constEnd();i++)
                 {
                     i.value()->setData(0,false,m_pageBufferMap[0]);
+                }
+                //QMap<QString,TSBPConfigData*> m_configDataMap;
+                for (QMap<QString,TSBPConfigData*>::const_iterator i = m_configDataMap.constBegin();i!=m_configDataMap.constEnd();i++)
+                {
+                    i.value()->setData(m_pageBufferMap[0]);
                 }
 
                 emit interrogationComplete();

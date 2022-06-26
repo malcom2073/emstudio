@@ -91,6 +91,7 @@ public:
     int getLocationIdList(unsigned char listtype, unsigned short listmask);
     int softReset();
     int hardReset();
+    QMap<int,int> m_pageSizeMap;
     bool sendSimplePacket(unsigned short payload);
     void connectSerial(QString port,int baud);
     void disconnectSerial();

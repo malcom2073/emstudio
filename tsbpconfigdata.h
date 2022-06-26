@@ -18,6 +18,7 @@ class TSBPConfigData : public ConfigData
 public:
     TSBPConfigData() { m_valid = false; }
     Type type() { return m_type; }
+    ElementType elementType() { return m_elementType; }
     //Parent functions
     void setData(QByteArray data);
     QString name() { return m_name; }
@@ -28,17 +29,23 @@ public:
     void setEnumBits(int min,int max);
     int getMinEnumBit();
     int getMaxEnumBit();
+    double getValue(); // For scalars
+    double getValue(unsigned short index); // For 2d arrays
+    double getValue(unsigned short x,unsigned short y); // For 3d arrays
     //End Parent Functions
+    QByteArray getBytes();
 
 
-
+    void setMinMax(double min, double max) { m_min = min; m_max = max; }
     void setName(QString name) { m_name = name; }
     void setTypeString(QString type) { m_typeString = type; }
     void setType(Type t) { m_type = t; }
+    void setElementType(ElementType t) { m_elementType = t; }
     void setSizeOverride(QString override) { m_sizeOverride = override; }
     void setSizeOverrideMult(double mult) { m_sizeOverrideMult = mult; }
     void setLocationId(unsigned short locationid) { m_locationId = locationid; }
-    void setSize(unsigned short size) { m_size = size; }
+    void setSize(unsigned short size) { m_size = size; m_xsize = 0; m_ysize = 0;}
+    void setSize(unsigned short xsize,unsigned short ysize) { m_xsize = xsize; m_ysize = ysize; m_size = 0;}
     void setElementSize(unsigned short size) { m_elementSize = size; }
     void setOffset(unsigned short offset) { m_offset = offset; }
     void setCalc(QList<QPair<QString,double> > calc) { m_calc = calc; }
@@ -49,9 +56,11 @@ public:
     unsigned short locationId() { return m_locationId; }
     unsigned short offset() { return m_offset; }
     unsigned short size() { return m_size; }
+    unsigned short xsize() { return m_xsize; }
+    unsigned short ysize() { return m_ysize; }
     unsigned short elementSize() { return m_elementSize; }
     QList<QPair<QString,double> > calc() { return m_calc; }
-    double calcAxis(unsigned short val,QList<QPair<QString,double> > metadata);
+    double calcAxis(float val,QList<QPair<QString,double> > metadata);
     unsigned short reverseCalcAxis(double val,QList<QPair<QString,double> > metadata);
     Q_INVOKABLE int elements() { return 1; }
     void saveToFlash();
@@ -64,8 +73,13 @@ private:
     QString m_name;
     QString m_typeString;
     Type m_type;
+    ElementType m_elementType;
     QString m_sizeOverride;
     double m_sizeOverrideMult;
+    unsigned short m_xsize;
+    double m_min;
+    double m_max;
+    unsigned short m_ysize;
     unsigned short m_locationId;
     unsigned short m_size;
     unsigned short m_elementSize;

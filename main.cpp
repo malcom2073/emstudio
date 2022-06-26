@@ -13,6 +13,7 @@
 #include <QDebug>
 #include "mspcomms.h"
 #include "parameterview.h"
+#include "emstest.h"
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -72,17 +73,14 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MSPComms *comm = new MSPComms();
-    comm->setPort("\\\\.\\COM100");
-    comm->setBaud(9600);
-    comm->connectSerial("\\\\.\\COM100",9600);
-    comm->startInterrogation();
-    ParameterView *param = new ParameterView();
-    param->setActiveComms(comm);
-    param->show();
+    EMSTest *test = new EMSTest();
+    test->startTest();
+   // ParameterView *param = new ParameterView();
+   // param->setActiveComms(comm);
+    //param->show();
 
-    param->passConfigBlockList(comm->getMetaParser()->configMetaData());
-    param->passMenuList(comm->getMetaParser()->menuMetaData());
+   // param->passConfigBlockList(comm->getMetaParser()->configMetaData());
+   // param->passMenuList(comm->getMetaParser()->menuMetaData());
 /*    QSerialPort serial;
     serial.setPortName("\\\\.\\COM100");
     serial.setBaudRate(9600);
@@ -126,7 +124,7 @@ int main(int argc, char *argv[])
         qDebug() << "Timeout on ready read";
     }
     serial.close();*/
-    MainWindow w;
-    w.show();
+    //MainWindow w;
+    //w.show();
     return a.exec();
 }

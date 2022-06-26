@@ -11,7 +11,7 @@
 void TSBPConfigData::setData(QByteArray data)
 {
     m_valid = true;
-    if (m_type == VALUE)
+    if (m_type == FLOAT)
     {
         if (data.size() < m_offset + m_elementSize)
         {
@@ -19,11 +19,28 @@ void TSBPConfigData::setData(QByteArray data)
             return;
         }
         QByteArray newdata = data.mid(m_offset,m_elementSize);
+        quint32 temp = ((char)newdata[3] << 24)|((char)newdata[2] << 16)|((char)newdata[1] << 8)|(char)newdata[0]; // Big endian
+        //float* out = reinterpret_cast<float*>(&temp);
+        float* out = reinterpret_cast<float*>(newdata.data());
+        qDebug() << "Value for" << m_name << *out << "offset" << m_offset << "size" << m_elementSize;
+        //m_value = QVariant(calcAxis(out,m_calc));
+        m_value = QVariant(calcAxis(*out,m_calc));
+    }
+    else if (m_type == VALUE)
+    {
+        if (data.size() < m_offset + m_elementSize)
+        {
+            //Error, data is not value for this config.
+            return;
+        }
+        QByteArray newdata = data.mid(m_offset,m_elementSize);
+
         unsigned long val = 0;
         for (int i=0;i<m_elementSize;i++)
         {
             val += ((unsigned char)newdata[i]) << (((m_elementSize-1) - i) * 8);
         }
+        qDebug() << "Value for" << m_name << val << "offset" << m_offset << "size" << m_elementSize;
         m_value = QVariant(calcAxis(val,m_calc));
     }
     else if (m_type == ENUM)
@@ -46,8 +63,76 @@ void TSBPConfigData::setData(QByteArray data)
         }
         m_value = QVariant(finalint);
     }
+    else if (m_type == ARRAY)
+    {
+        if (m_size == 0)
+        {
+            //It's a 3d array
+        }
+        else
+        {
+            if (data.size() < m_offset + (m_elementSize * m_size))
+            {
+                qDebug() << data.size() << m_offset + (m_elementSize * m_size);
+                //Error, data is not value for this config.
+                return;
+            }
+            QVariantList m_axis;
+            for (int i=m_offset;i<(m_offset + (m_elementSize * m_size));i+=m_elementSize)
+            {
+                double val = 0;
+                if (m_elementType == ConfigData::FLOAT_ELEMENT)
+                {
+                    QByteArray valarray = data.mid(i,m_elementSize);
+                    float outval = *reinterpret_cast<float*>(valarray.data());
+                        m_axis.append(outval);
+                }
+            }
+            m_value = m_axis;
+
+        }
+    }
     emit update();
 }
+QByteArray TSBPConfigData::getBytes()
+{
+    if (m_type == ARRAY)
+    {
+        if (m_size == 0)
+        {
+            //It's a 3d array
+            return QByteArray();
+        }
+        else
+        {
+            QByteArray retval;
+            QVariantList varlist = m_value.toList();
+            for (int i=0;i<varlist.size();i++)
+            {
+                float floatval = varlist.at(i).toFloat();
+                retval.append(QByteArray::fromRawData(reinterpret_cast<char *>(&floatval), sizeof(float)));
+            }
+            return retval;
+        }
+    }
+    return QByteArray();
+}
+double TSBPConfigData::getValue()
+{
+    return m_value.toDouble();
+    return 0.0;
+}
+double TSBPConfigData::getValue(unsigned short index)
+{
+    QList<QVariant> vallist = m_value.toList();
+    return vallist.at(index).toFloat();
+    return 0.0;
+}
+double TSBPConfigData::getValue(unsigned short x,unsigned short y)
+{
+    return 0.0;
+}
+
 QStringList TSBPConfigData::getEnumValues()
 {
     return m_enumList;
@@ -124,7 +209,7 @@ void TSBPConfigData::setValue(QVariant value)
 
     }
 }
-double TSBPConfigData::calcAxis(unsigned short val,QList<QPair<QString,double> > metadata)
+double TSBPConfigData::calcAxis(float val,QList<QPair<QString,double> > metadata)
 {
     if (metadata.size() == 0)
     {
