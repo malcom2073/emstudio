@@ -190,6 +190,12 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                             currentDialogItem.variable = currdialogitemsplit[0].replace("\"","").trimmed();
                             currentDialogItem.title = currdialogitemsplit[1].replace("\"","").trimmed();
                         }
+                        else
+                        {
+                            //No title, just a variable
+                            currentDialogItem.variable = currdialogitemsplit[0].replace("\"","").trimmed();
+                            currentDialogItem.title = currdialogitemsplit[0].replace("\"","").trimmed();
+                        }
                         if (currdialogitemsplit.size() >= 3)
                         {
                             //Unknown, but sometimes present?
@@ -248,8 +254,8 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         QStringList panelsplit = splitline(linesplit[1]);
                         if (panelsplit.size() >= 2)
                         {
-                        QString panelname = panelsplit[0];
-                        QString panelloc = panelsplit[1];
+                        QString panelname = panelsplit[0].trimmed();
+                        QString panelloc = panelsplit[1].trimmed();
                         currentDialogItem.panelList.append(QPair<QString,QString>(panelloc,panelname));
                         }
                     }
@@ -760,15 +766,36 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                     }
                     else if (linesplit[0].trimmed() == "xBins")
                     {
-                        tableMap[currenttablevar]->xbin = linesplit[1].trimmed();
+                        if (linesplit[1].contains(","))
+                        {
+                            tableMap[currenttablevar]->xbin = linesplit[1].split(",")[0].trimmed();
+                        }
+                        else
+                        {
+                            tableMap[currenttablevar]->xbin = linesplit[1].trimmed();
+                        }
                     }
                     else if (linesplit[0].trimmed() == "yBins")
                     {
-                        tableMap[currenttablevar]->ybin = linesplit[1].trimmed();
+                        if (linesplit[1].contains(","))
+                        {
+                            tableMap[currenttablevar]->ybin = linesplit[1].split(",")[0].trimmed();
+                        }
+                        else
+                        {
+                            tableMap[currenttablevar]->ybin = linesplit[1].trimmed();
+                        }
                     }
                     else if (linesplit[0].trimmed() == "zBins")
                     {
-                        tableMap[currenttablevar]->zbin = linesplit[1].trimmed();
+                        if (linesplit[1].contains(","))
+                        {
+                            tableMap[currenttablevar]->zbin = linesplit[1].split(",")[0].trimmed();
+                        }
+                        else
+                        {
+                            tableMap[currenttablevar]->zbin = linesplit[1].trimmed();
+                        }
                     }
                     else if (linesplit[0].trimmed() == "upDownLabel")
                     {
@@ -1133,6 +1160,22 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
         }
     }
     m_memoryMetaData->setMenuMetaData(menu);
+}
+Table* MSPComms::getTableFromName(QString name)
+{
+    if (tableMap.contains(name))
+    {
+        return tableMap[name];
+    }
+    return 0;
+}
+Curve* MSPComms::getCurveFromName(QString name)
+{
+    if (curveMap.contains(name))
+    {
+        return curveMap[name];
+    }
+    return 0;
 }
 QStringList MSPComms::splitline(QString csvline)
 {

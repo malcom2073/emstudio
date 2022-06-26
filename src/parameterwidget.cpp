@@ -13,7 +13,10 @@
 #include <QPushButton>
 //#include "QsLog.h"
 #include "configdata.h"
-
+#include "tsbpheaders.h"
+#include "arrayconfigdata.h"
+#include "tableconfigdata.h"
+#include "tableview3d.h"
 ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
@@ -32,6 +35,16 @@ ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
     //scrollArea->show();
     //scrollWidget->show();
     //scrollArea->show();
+}
+void ParameterWidget::addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata)
+{
+    TableView3D *table = new TableView3D(ui.scrollArea->widget());
+    table->setData("Lambda",xdata,ydata,zdata);
+    table->show();
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(table);
+    ui.scrollArea->widget()->layout()->addItem(layout);
+
 }
 void ParameterWidget::saveButtonClicked()
 {

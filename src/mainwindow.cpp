@@ -8,11 +8,17 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
-MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent)
-    , ui(new Ui::MainWindow)
+#include "parameterview.h"
+MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+    m_comms = new MSPComms();
+    connect(m_comms,&MSPComms::interrogationComplete,this,&MainWindow::interrogationCompleted);
+    m_comms->setPort("\\\\.\\COM100");
+    m_comms->setBaud(115200);
+    m_comms->connectSerial("\\\\.\\COM100",115200);
+    m_comms->startInterrogation();
+
 }
 
 MainWindow::~MainWindow()
@@ -20,3 +26,12 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
+void MainWindow::interrogationCompleted()
+{
+    ParameterView *param = new ParameterView();
+    param->passConfigBlockList(m_comms->getMetaParser()->configMetaData());
+    param->passMenuList(m_comms->getMetaParser()->menuMetaData());
+    param->setActiveComms(m_comms);
+    param->show();
+
+}

@@ -120,6 +120,8 @@ public:
     int disableDatalogStream();
     void acceptLocalChanges() { };
     void rejectLocalChanges() { };
+    Table* getTableFromName(QString name);
+    Curve* getCurveFromName(QString name);
 private:
 
 
@@ -155,6 +157,7 @@ private:
     QMap<QString,QMap<QString,arrayclass> > m_pageArrayMap;
     QMap<int,QByteArray> m_pageBufferMap;
     QMap<int,int> m_pageBufferFilledMap;
+
     QMap<QString,Table*> tableMap;
     QMap<QString,Curve*> curveMap;
     QMap<int,QList<TSBPTable2DData*> > m_pageTo2DTableList;

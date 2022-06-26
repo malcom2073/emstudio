@@ -20,7 +20,7 @@
 
 //#include <freeems/fetable3ddata.h>
 //#include "tablewidgetdelegate.h"
-TableView3D::TableView3D(QWidget *parent)
+TableView3D::TableView3D(QWidget *parent) : QWidget(parent)
 {
     Q_UNUSED(parent)
     m_isFlashOnly = false;

@@ -19,7 +19,9 @@
 #include "scalarparam.h"
 #include "comboparam.h"
 #include "ui_parameterwidget.h"
-
+class Table;
+class ArrayConfigData;
+class TableConfigData;
 class ParameterWidget : public QWidget
 {
     Q_OBJECT
@@ -30,6 +32,7 @@ public:
     void updateValue(unsigned short locationid,QByteArray block);
     void setValueRamFlash(unsigned short locationid,bool isRam,bool isFlash);
     void addParam(QString title,DialogField field,ConfigData* data);
+    void addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata);
 private:
     double calcAxis(int val,QList<QPair<QString,double> > metadata);
     int backConvertAxis(double val,QList<QPair<QString,double> > metadata);

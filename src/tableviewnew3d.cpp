@@ -21,7 +21,7 @@ TableViewNew3D::TableViewNew3D(QWidget *parent) : QWidget(parent)
     m_traceEnabled = false;
     m_updateTimer = new QTimer(this);
     connect(m_updateTimer,SIGNAL(timeout()),this,SLOT(update()));
-    m_updateTimer->start(100);
+    //m_updateTimer->start(100);
     m_inEdit = false;
     qRegisterMetaType<QList<QPair<int,int> > >("QList<QPair<int,int> >");
     m_minSelectedRow = 0;

@@ -72,6 +72,7 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
                     {
                         //QLOG_DEBUG() << "Variable:" << m_metaMenu.menulist[i].subMenuList[j].variable;
                         emit showTable(m_metaMenu.menulist[i].subMenuList[j].variable);
+                        bool found = false;
                         for (int k=0;k<m_metaMenu.dialoglist.size();k++)
                         {
                             if (m_metaMenu.dialoglist[k].variable == m_metaMenu.menulist[i].subMenuList[j].variable)
@@ -81,18 +82,40 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
                                 {
                                     //Has sub-panels, find and populate them.
                                 }
+                                found = true;
                                 generateDialog(m_metaMenu.dialoglist[k]);
                                 //Generate a dialog here.
                             }
 
+                        }
+                        if (!found)
+                        {
+                            QString variablename = m_metaMenu.menulist[i].subMenuList[j].variable;
+                            Table* table = m_emsComms->getTableFromName(variablename);
+                            if (table)
+                            {
+                                ParameterWidget *widget = new ParameterWidget();
+                                connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
+                                widget->show();
+                                paramWidgetList.append(widget);
+                                ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
+                                ArrayConfigData *ydata = m_emsComms->getArrayConfigData(table->ybin);
+                                TableConfigData *zdata = m_emsComms->getTableConfigData(table->zbin);
+                                widget->addTable(xdata,ydata,zdata);
+                            }
+                            else
+                            {
+
+                            }
+                            //No dialog found, show the raw data type.
                         }
                     }
                 }
             }
         }
     }
-
 }
+
 void ParameterView::generateDialog(DialogItem item)
 {
     //QString title,QList<DialogField> fieldlist
@@ -106,6 +129,17 @@ void ParameterView::generateDialog(DialogItem item)
     connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
     widget->show();
     paramWidgetList.append(widget);
+    for (int i=0;i<item.panelList.size();i++)
+    {
+        Table* table = m_emsComms->getTableFromName(item.panelList[i].second);
+        if (table)
+        {
+            ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
+            ArrayConfigData *ydata = m_emsComms->getArrayConfigData(table->ybin);
+            TableConfigData *zdata = m_emsComms->getTableConfigData(table->zbin);
+            widget->addTable(xdata,ydata,zdata);
+        }
+    }
     for (int i=0;i<fieldlist.size();i++)
     {
         //QLOG_DEBUG() << "Field:" << fieldlist[i].title << fieldlist[i].variable;

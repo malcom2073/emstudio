@@ -10,7 +10,7 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-
+#include "mspcomms.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -25,5 +25,8 @@ public:
 
 private:
     Ui::MainWindow *ui;
+    MSPComms *m_comms;
+private slots:
+    void interrogationCompleted();
 };
 #endif // MAINWINDOW_H

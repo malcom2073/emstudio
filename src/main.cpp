@@ -78,8 +78,8 @@ int main(int argc, char *argv[])
 
     //TableView3D *view = new TableView3D();
     //view->show();
-    EMSTest *test = new EMSTest();
-    test->startTest();
+    //EMSTest *test = new EMSTest();
+    //test->startTest();
    // ParameterView *param = new ParameterView();
    // param->setActiveComms(comm);
     //param->show();
@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
         qDebug() << "Timeout on ready read";
     }
     serial.close();*/
-    //MainWindow w;
-    //w.show();
+    MainWindow w;
+    w.show();
     return a.exec();
 }
