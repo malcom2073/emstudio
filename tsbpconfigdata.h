@@ -49,7 +49,7 @@ public:
     void setElementSize(unsigned short size) { m_elementSize = size; }
     void setOffset(unsigned short offset) { m_offset = offset; }
     void setCalc(QList<QPair<QString,double> > calc) { m_calc = calc; }
-
+    bool setValue(int index,QVariant value);
     QString typeString() { return m_typeString; }
     QString sizeOverride() { return m_sizeOverride; }
     double sizeOverrideMult() { return m_sizeOverrideMult; }

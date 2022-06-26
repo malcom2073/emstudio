@@ -9,8 +9,11 @@ class EMSTest : public QObject
 public:
     explicit EMSTest(QObject *parent = nullptr);
     void startTest();
+    bool testSimple2DArray();
+    bool testSimple2DWrite();
 private:
     MSPComms *m_comms;
+    bool m_failure;
 signals:
 public slots:
     void interrogationCompleted();

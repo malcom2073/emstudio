@@ -172,6 +172,16 @@ void TSBPConfigData::saveToFlash()
     emit pageBurnRequested(m_locationId);
 }
 
+bool TSBPConfigData::setValue(int index,QVariant value)
+{
+    if (m_type != ARRAY)
+    {
+        return false;
+    }
+    QVariantList varlist = m_value.toList();
+    varlist[index] = value;
+    m_value = varlist;
+}
 void TSBPConfigData::setValue(QVariant value)
 {
     m_valid =  true;
