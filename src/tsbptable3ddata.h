@@ -13,7 +13,7 @@
 #include <QObject>
 #include "tabledata.h"
 #include "table3dmetadata.h"
-#include "tsbpconfigdata.h"
+#include "baseconfigdata.h"
 class TSBPTable3DData : public QObject
 {
     Q_OBJECT

@@ -930,12 +930,13 @@ bool TableView3D::updateTable()
     //ui.tableWidget->verticalHeader()->hide();
     ui.tableWidget->setRowCount(tableData->rows());
     ui.tableWidget->setColumnCount(tableData->columns());
-    if (tableData->yAxis().size() == 0 || tableData->xAxis().size() == 0)
+    /*if (tableData->yAxis().size() == 0 || tableData->xAxis().size() == 0)
     {
         //Invalid/empty data
         //QLOG_ERROR() << "3D Table axis had zero values. This is INVALID and should be fixed.";
         return false;
-    }
+    }*/
+    /*
     double first = tableData->yAxis()[0];
     int order = 0;
     m_yAxisMax = first;
@@ -1025,6 +1026,14 @@ bool TableView3D::updateTable()
         }
         first = tableData->xAxis()[i];
         ui.tableWidget->setXAxis(i,formatNumber(tableData->xAxis()[i],m_metaData.xDp));
+    }*/
+    for (int x=0;x<m_xAxis->size();x++)
+    {
+        ui.tableWidget->setXAxis(x,QString::number(m_xAxis->getValue(x).toFloat()));
+    }
+    for (int y=0;y<m_yAxis->size();y++)
+    {
+        ui.tableWidget->setXAxis(y,QString::number(m_yAxis->getValue(y).toFloat()));
     }
     m_valueMax = tableData->values()[0][0];
     for (int row=0;row<tableData->rows();row++)
@@ -1074,12 +1083,16 @@ void TableView3D::setMetaData(Table3DMetaData metadata)
     m_metaData = metadata;
     metaDataValid = true;
 }*/
-bool TableView3D::setData(QString name,TSBPTable3DData *data)
+bool TableView3D::setData(QString name,ArrayConfigData *x,ArrayConfigData *y,ArrayConfigData *z)
+//bool TableView3D::setData(QString name,TSBPTable3DData *data)
 {
+    m_xAxis = x;
+    m_yAxis = y;
+    m_zAxis = z;
     Q_UNUSED(name)
     if (tableData == 0)
     {
-        tableData = data;
+//        tableData = data;
         //tableData = dynamic_cast<Table3DData*>(data);
         //connect(tableData,SIGNAL(update()),this,SLOT(updateTable()));
         //connect(tableData,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));

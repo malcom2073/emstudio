@@ -30,11 +30,11 @@ void ScalarParam::setConfig(ConfigData *data)
 {
 	connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
 	m_data = data;
-	ui->lineEdit->setText(QString::number(m_data->value().toFloat(),'f',2));
+//	ui->lineEdit->setText(QString::number(m_data->value().toFloat(),'f',2));
 }
 void ScalarParam::dataUpdate()
 {
-	ui->lineEdit->setText(QString::number(m_data->value().toFloat(),'f',2));
+//	ui->lineEdit->setText(QString::number(m_data->value().toFloat(),'f',2));
 }
 void ScalarParam::saveValue()
 {
@@ -43,5 +43,5 @@ void ScalarParam::saveValue()
 }
 void ScalarParam::lineEditFinished()
 {
-	m_data->setValue(ui->lineEdit->text().toFloat());
+//	m_data->setValue(ui->lineEdit->text().toFloat());
 }

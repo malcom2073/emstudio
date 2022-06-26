@@ -1,6 +1,15 @@
+/************************************************************************************
+ * EMStudio - Open Source ECU tuning software                                       *
+ * Copyright (C) 2022 Michael Carpenter (malcom2073@gmail.com)                      *
+ *                                                                                  *
+ * This file is a part of EMStudio and is licensed under The MIT License (MIT)      *
+ * as defined in LICENSE.md at the top level of this repository                     *
+ ************************************************************************************/
+
 #include "emstest.h"
 #include <QDebug>
-#include "tsbpconfigdata.h"
+//#include "tsbpconfigdata.h"
+#include "arrayconfigdata.h"
 EMSTest::EMSTest(QObject *parent)
     : QObject{parent}
 {
@@ -23,7 +32,7 @@ bool EMSTest::testSimple2DWrite()
     outputvals.append(7000);
 
 
-    TSBPConfigData config;
+    ArrayConfigData config;
     config.setElementSize(4);
     config.setSize(8);
     config.setName("test");
@@ -64,7 +73,7 @@ bool EMSTest::testSimple2DArray()
     outputvals.append(7000);
 
 
-    TSBPConfigData config;
+    ArrayConfigData config;
     config.setElementSize(4);
     config.setSize(8);
     config.setName("test");
@@ -115,8 +124,8 @@ void EMSTest::startTest()
     qDebug() << succeedcount << "tests passed." << failcount << "tests failed.";
 
 
-    testSimple2DWrite();
-    return;
+    //testSimple2DWrite();
+    //return;
 
     m_comms = new MSPComms();
     connect(m_comms,&MSPComms::interrogationComplete,this,&EMSTest::interrogationCompleted);
@@ -130,18 +139,40 @@ void EMSTest::interrogationCompleted()
     qDebug() << "Finished interrogation!";
     // At this point, all the memory in m_comms should be valid and equal to the msq from TS.
     //TSBPConfigData *data = qobject_cast<TSBPConfigData*>(m_comms->getConfigData("lambdaTable"));
-    TSBPConfigData *data = qobject_cast<TSBPConfigData*>(m_comms->getConfigData("map_samplingWindowBins"));
+    ArrayConfigData *data = m_comms->getArrayConfigData("map_samplingWindowBins");
 
     if (!data)
     {
         qDebug() << "Unable to cast data for mapErrorDetectionTooHigh";
         return;
     }
-    qDebug() << "Got scalar!" << "size" << data->size() << "offset" << data->offset() << "value:" << data->getValue();
+    qDebug() << "Got scalar!" << "size" << data->size() << "offset" << data->offset() << "value:" << data->getValue(0);
     for (int i=0;i<data->size();i++)
     {
         qDebug() << data->getValue(i);
     }
     qDebug() << data->getBytes().toHex();
+
+
+    TableConfigData *tdata = m_comms->getTableConfigData("tpsTpsAccelTable");
+    if (!tdata)
+    {
+        qDebug() << "Unable to cast data for tpsTpsAccelTable";
+        return;
+    }
+    for (int x=0;x<tdata->xSize();x++)
+    {
+        QString linestr = "";
+        for (int y=0;y<tdata->ySize();y++)
+        {
+            linestr += QString::number(tdata->getValue(x,y).toFloat()) + ",";
+        }
+        qDebug() << linestr;
+    }
+    QByteArray origbytes =tdata->getOrig();
+    QByteArray newbytes = tdata->getBytes();
+    qDebug() << "Org: " << origbytes.toHex();
+    qDebug() << "New: " << newbytes.toHex();
+
 
 }

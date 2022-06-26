@@ -33,15 +33,8 @@ public:
 
     virtual void setData(QByteArray data)=0;
     virtual QString name()=0;
-    virtual Q_INVOKABLE QVariant value()=0;
-    virtual Q_INVOKABLE void setValue(QVariant value)=0;
-    virtual Q_INVOKABLE int elements()=0;
     virtual Type type()=0;
-    virtual QStringList getEnumValues()=0;
-    virtual void setEnumValues(QStringList values)=0;
-    virtual void setEnumBits(int min,int max)=0;
-    virtual int getMinEnumBit()=0;
-    virtual int getMaxEnumBit()=0;
+    virtual ElementType elementType()=0;
     virtual void saveToFlash()=0;
 signals:
     void update();

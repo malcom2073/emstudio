@@ -6,25 +6,14 @@
  * as defined in LICENSE.md at the top level of this repository                     *
  ************************************************************************************/
 
-#ifndef EMSTEST_H
-#define EMSTEST_H
+#ifndef BITCONFIGDATA_H
+#define BITCONFIGDATA_H
 
-#include <QObject>
-#include "mspcomms.h"
-class EMSTest : public QObject
+
+class BitConfigData
 {
-    Q_OBJECT
 public:
-    explicit EMSTest(QObject *parent = nullptr);
-    void startTest();
-    bool testSimple2DArray();
-    bool testSimple2DWrite();
-private:
-    MSPComms *m_comms;
-    bool m_failure;
-signals:
-public slots:
-    void interrogationCompleted();
+    BitConfigData();
 };
 
-#endif // EMSTEST_H
+#endif // BITCONFIGDATA_H

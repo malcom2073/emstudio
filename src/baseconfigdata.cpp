@@ -6,7 +6,7 @@
  * as defined in LICENSE.md at the top level of this repository                     *
  ************************************************************************************/
 
-#include "tsbpconfigdata.h"
+#include "baseconfigdata.h"
 #include <QDebug>
 void TSBPConfigData::setData(QByteArray data)
 {

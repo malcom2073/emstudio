@@ -17,7 +17,8 @@
 #include "tsbptable2ddata.h"
 #include <QTimer>
 #include <QFile>
-
+#include "arrayconfigdata.h"
+#include "tableconfigdata.h"
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -593,13 +594,8 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         }
                         else if (linevalsplit[0].trimmed() == "array")
                         {
-                            TSBPConfigData *data = new TSBPConfigData();
-                            data->setType(ConfigData::ARRAY);
-                            //arrayMap
+                            QString format = linevalsplit[3].trimmed();
                             unsigned int offset = linevalsplit[2].trimmed().toInt();
-                            data->setOffset(offset);
-                            arrayclass array;
-                            //array.offset =
                             QList<QPair<QString,double> > calclist;
                             if (linevalsplit[5].trimmed().startsWith("."))
                             {
@@ -617,64 +613,84 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                             {
                                 calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
                             }
-                            data->setCalc(calclist);
-                            data->setName(linesplit[0].trimmed());
-                            data->setLocationId(pagenumint);
-                            array.isfloat = false;
-                            array.unit = linevalsplit[1].trimmed();
-                            QString format = linevalsplit[3].trimmed();
+                            unsigned short elementsize = 0;
+                            bool issigned = false;
+                            bool isfloat = false;
                             if (linevalsplit[1].trimmed() == "S16")
                             {
-                                array.isSigned = true;
-                                array.elementSize = 2;
-                                data->setElementSize(2);
+                                elementsize = 2;
+                                issigned = true;
                             }
                             else if (linevalsplit[1].trimmed() == "U08")
                             {
-                                array.isSigned = false;
-                                array.elementSize = 1;
-                                data->setElementSize(1);
+                                elementsize = 1;
+                                issigned = false;
                             }
                             else if (linevalsplit[1].trimmed() == "U16")
                             {
-                                array.isSigned = false;
-                                array.elementSize = 2;
-                                data->setElementSize(2);
+                                elementsize=2;
+                                issigned=false;
                             }
                             else if (linevalsplit[1].trimmed() == "U32")
                             {
-                                array.isSigned = false;
-                                array.elementSize = 4;
-                                data->setElementSize(4);
+                                elementsize=4;
+                                issigned=false;
                             }
                             else if (linevalsplit[1].trimmed() == "S32")
                             {
-                                array.isSigned = true;
-                                array.elementSize = 4;
-                                data->setElementSize(4);
+                                elementsize=4;
+                                issigned=true;
                             }
                             else if (linevalsplit[1].trimmed() == "F32")
                             {
-                                array.isSigned = true;
-                                array.elementSize = 4;
-                                array.isfloat = true;
-                                data->setElementSize(4);
-                                data->setElementType(ConfigData::FLOAT_ELEMENT);
+                                elementsize=4;
+                                issigned=true;
+                                isfloat=true;
                             }
+
                             if (format.contains("x"))
                             {
+                                TableConfigData *data = new TableConfigData();
+                                data->setType(ConfigData::ARRAY);
                                 //It's a 3d array.
-                                data->setSize(format.mid(1,format.size()-2).split("x")[0].toInt(),format.mid(1,format.size()-2).split("x")[1].toInt());
+                                data->setCalc(calclist);
+                                //data->setLocationId(pagenumint);
+                                data->setXSize(format.mid(1,format.size()-2).split("x")[0].toInt());
+                                data->setName(linesplit[0].trimmed());
+                                data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
+                                data->setOffset(offset);
+                                data->setElementSize(elementsize);
+                                if (isfloat)
+                                {
+                                    data->setElementType(ConfigData::FLOAT_ELEMENT);
+                                }
+                                m_tableDataMap.insert(linesplit[0].trimmed(),data);
+
                             }
                             else
                             {
-                                array.is2d = true;
+                                ArrayConfigData *data = new ArrayConfigData();
+                                data->setCalc(calclist);
+                                data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
+                                data->setName(linesplit[0].trimmed());
+                                //data->setLocationId(pagenumint);
+                                data->setType(ConfigData::ARRAY);
+                                data->setOffset(offset);
+                                data->setElementSize(elementsize);
+                                if (isfloat)
+                                {
+                                    data->setElementType(ConfigData::FLOAT_ELEMENT);
+                                }
+
                                 data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
                                 //data->setAxisMetaData(elementsize,array.scale,array.translate,issigned);
                                 //m_2dTableData[linesplit[0].trimmed()] = data;
+                                m_arrayDataMap.insert(linesplit[0].trimmed(),data);
                             }
+                            //TableConfigData or ArrayConfigData
+
                             //7,8 min,max
-                            if (linesplit.size() > 8)
+                            /*if (linesplit.size() > 8)
                             {
                                 array.min = linesplit[7].trimmed().toFloat();
                                 array.max = linesplit[8].trimmed().toFloat();
@@ -683,10 +699,10 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                             {
                                 array.min = -65535;
                                 array.max = 65535;
-                            }
+                            }*/
 
-                            arrayMap[linesplit[0].trimmed()] = array;
-                            m_configDataMap[linesplit[0].trimmed()] = data;
+                            //arrayMap[linesplit[0].trimmed()] = array;
+                            //m_configDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
                             //pageArrayMap[pagenum][linesplit[0].trimmed()] = array;
                         }
@@ -1224,7 +1240,22 @@ ConfigData* MSPComms::getConfigData(QString name)
     }
     return 0;
 }
-
+ArrayConfigData *MSPComms::getArrayConfigData(QString name)
+{
+    if (m_arrayDataMap.contains(name))
+    {
+        return m_arrayDataMap[name];
+    }
+    return 0;
+}
+TableConfigData *MSPComms::getTableConfigData(QString name)
+{
+    if (m_tableDataMap.contains(name))
+    {
+        return m_tableDataMap[name];
+    }
+    return 0;
+}
 QList<QString> MSPComms::getConfigList()
 {
     return m_configNameList;
@@ -1760,6 +1791,16 @@ void MSPComms::parseBuffer(QByteArray data)
                 {
                     i.value()->setData(m_pageBufferMap[0]);
                 }
+                for (QMap<QString,TableConfigData*>::const_iterator i=m_tableDataMap.constBegin();i!=m_tableDataMap.constEnd();i++)
+                {
+                    i.value()->setData(m_pageBufferMap[0]);
+
+                }
+                for (QMap<QString,ArrayConfigData*>::const_iterator i=m_arrayDataMap.constBegin();i!=m_arrayDataMap.constEnd();i++)
+                {
+                    i.value()->setData(m_pageBufferMap[0]);
+                }
+
 
                 emit interrogationComplete();
             }

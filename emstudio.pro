@@ -9,7 +9,10 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
+    src/scalarconfigdata.cpp \
+    src/bitconfigdata.cpp \
     src/comboparam.cpp \
+    src/arrayconfigdata.cpp \
     src/datafield.cpp \
     src/emstest.cpp \
     src/main.cpp \
@@ -20,8 +23,9 @@ SOURCES += \
     src/parameterview.cpp \
     src/parameterwidget.cpp \
     src/scalarparam.cpp \
+    src/tableconfigdata.cpp \
     src/tableview3d.cpp \
-    src/tsbpconfigdata.cpp \
+    src/baseconfigdata.cpp \
     src/tsbpdatapacketdecoder.cpp \
     src/tsbpmemorymetadata.cpp \
     src/tsbptable2ddata.cpp \
@@ -29,9 +33,12 @@ SOURCES += \
     src/tableviewnew3d.cpp
 
 HEADERS += \
+    src/scalarconfigdata.h \
+    src/bitconfigdata.h \
     src/comboparam.h \
     src/configblock.h \
     src/configdata.h \
+    src/arrayconfigdata.h \
     src/datafield.h \
     src/datatype.h \
     src/dialogfield.h \
@@ -54,9 +61,10 @@ HEADERS += \
     src/submenuitem.h \
     src/table2dmetadata.h \
     src/table3dmetadata.h \
+    src/tableconfigdata.h \
     src/tabledata.h \
     src/tableview3d.h \
-    src/tsbpconfigdata.h \
+    src/baseconfigdata.h \
     src/tsbpdatapacketdecoder.h \
     src/tsbpheaders.h \
     src/tsbpmemorymetadata.h \

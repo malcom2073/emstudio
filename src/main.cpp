@@ -76,10 +76,10 @@ int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
 
-    TableView3D *view = new TableView3D();
-    view->show();
-    //EMSTest *test = new EMSTest();
-    //test->startTest();
+    //TableView3D *view = new TableView3D();
+    //view->show();
+    EMSTest *test = new EMSTest();
+    test->startTest();
    // ParameterView *param = new ParameterView();
    // param->setActiveComms(comm);
     //param->show();

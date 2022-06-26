@@ -29,8 +29,8 @@ void ComboParam::setName(QString name)
 void ComboParam::setConfig(ConfigData *data)
 {
 	disconnect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
-	ui->comboBox->addItems(data->getEnumValues());
-	ui->comboBox->setCurrentIndex(data->value().toInt());
+//	ui->comboBox->addItems(data->getEnumValues());
+//	ui->comboBox->setCurrentIndex(data->value().toInt());
 	m_data = data;
 	connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
 	connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
@@ -44,10 +44,10 @@ void ComboParam::saveValue()
 void ComboParam::dataUpdate()
 {
 	disconnect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
-	ui->comboBox->setCurrentIndex(m_data->value().toInt());
+//	ui->comboBox->setCurrentIndex(m_data->value().toInt());
 	connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
 }
 void ComboParam::currentIndexChanged(int index)
 {
-	m_data->setValue(index);
+//	m_data->setValue(index);
 }

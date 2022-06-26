@@ -18,6 +18,7 @@
 //#include "dataview.h"
 //#include "tablemap3d.h"
 #include <QTimer>
+#include "arrayconfigdata.h"
 class TableView3D : public QWidget
 {
     Q_OBJECT
@@ -27,7 +28,7 @@ public:
     ~TableView3D();
     //void setMetaData(Table3DMetaData metadata);
     //bool setData(unsigned short locationid,DataBlock *data);
-    bool setData(QString name,TSBPTable3DData *data);
+    bool setData(QString name,ArrayConfigData *x,ArrayConfigData *y,ArrayConfigData *z);
     void passDatalog(QVariantMap data);
 private:
     bool m_firstKeypress;
@@ -38,6 +39,9 @@ private:
     //TableMap3D *m_tableMap;
     bool m_isFlashOnly;
     bool metaDataValid;
+    ArrayConfigData *m_xAxis;
+    ArrayConfigData *m_yAxis;
+    ArrayConfigData *m_zAxis;
     TSBPTable3DData *tableData;
     unsigned short m_locationId;
     QString m_currentValue;

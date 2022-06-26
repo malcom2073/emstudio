@@ -15,13 +15,15 @@
 #include "tsbptable2ddata.h"
 #include "tsbptable3ddata.h"
 #include "tsbpheaders.h"
-#include "tsbpconfigdata.h"
+#include "baseconfigdata.h"
 #include <QVariant>
 #include "configdata.h"
 #include "rawdata.h"
 #include <QSerialPort>
 #include <QMutex>
 #include "memorylocationinfo.h"
+#include "arrayconfigdata.h"
+#include "tableconfigdata.h"
 class MSPComms : public QObject
 {
     Q_OBJECT
@@ -78,6 +80,8 @@ public:
     int stopBenchTest();
     int bumpBenchTest(unsigned char cyclenum);
     ConfigData* getConfigData(QString name);
+    ArrayConfigData *getArrayConfigData(QString name);
+    TableConfigData *getTableConfigData(QString name);
     QList<QString> getConfigList();
     void writeAllRamToRam();
     void setLogDirectory(QString dir);
@@ -143,6 +147,8 @@ private:
     QList<QString> m_configNameList;
     QMap<QString,TSBPTable2DData*> m_2dTableData;
     QMap<QString,TSBPTable3DData*> m_3dTableData;
+    QMap<QString,TableConfigData*> m_tableDataMap;
+    QMap<QString,ArrayConfigData*> m_arrayDataMap;
     void triggerNextSend();
 
     //QMap<QString,QMap<QString,scalarclass> > pageMap;
