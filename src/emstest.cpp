@@ -11,6 +11,7 @@
 //#include "tsbpconfigdata.h"
 #include "arrayconfigdata.h"
 #include "tableview3d.h"
+#include "tablemap3d.h"
 EMSTest::EMSTest(QObject *parent)
     : QObject{parent}
 {
@@ -177,9 +178,9 @@ void EMSTest::interrogationCompleted()
     //x: lambdaRpmBins
     //y: lambdaLoadBins
     //z: lambdaTable
-    ArrayConfigData *xdata = m_comms->getArrayConfigData("lambdaRpmBins");
-    ArrayConfigData *ydata = m_comms->getArrayConfigData("lambdaLoadBins");
-    TableConfigData *zdata = m_comms->getTableConfigData("lambdaTable");
+    ArrayConfigData *xdata = m_comms->getArrayConfigData("ignitionRpmBins");
+    ArrayConfigData *ydata = m_comms->getArrayConfigData("ignitionLoadBins");
+    TableConfigData *zdata = m_comms->getTableConfigData("ignitionTable");
     if (!xdata || !ydata || !zdata)
     {
         qDebug() << "Unable to cast data for 3d table!";
@@ -189,5 +190,8 @@ void EMSTest::interrogationCompleted()
     table->setData("Lambda",xdata,ydata,zdata);
     table->show();
 
+    /*TableMap3D *map = new TableMap3D();
+    map->setData("Lambda",xdata,ydata,zdata);
+    map->show();*/
 
 }

@@ -41,7 +41,7 @@ void TableConfigData::setData(QByteArray data)
             double val = 0;
             for (int j=0;j<m_elementSize;j++)
             {
-                val += (((unsigned char)data[(i + j)]) << (((m_elementSize-1) - j) * 8));
+                val += (((unsigned char)data[(i + j)]) << (j * 8));
             }
             for (int c = 0; c< m_calcList.size();c++)
             {

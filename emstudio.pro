@@ -1,5 +1,6 @@
-QT       += core gui
+QT       += core gui opengl
 QT += serialport
+QT += openglwidgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -7,7 +8,8 @@ CONFIG += c++17
 # You can make your code fail to compile if it uses deprecated APIs.
 # In order to do so, uncomment the following line.
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
-
+LIBS += -lOpenGL32# -lglut32
+LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
     src/scalarconfigdata.cpp \
     src/bitconfigdata.cpp \
@@ -24,6 +26,7 @@ SOURCES += \
     src/parameterwidget.cpp \
     src/scalarparam.cpp \
     src/tableconfigdata.cpp \
+    src/tablemap3d.cpp \
     src/tableview3d.cpp \
     src/baseconfigdata.cpp \
     src/tsbpdatapacketdecoder.cpp \
@@ -63,6 +66,7 @@ HEADERS += \
     src/table3dmetadata.h \
     src/tableconfigdata.h \
     src/tabledata.h \
+    src/tablemap3d.h \
     src/tableview3d.h \
     src/baseconfigdata.h \
     src/tsbpdatapacketdecoder.h \
