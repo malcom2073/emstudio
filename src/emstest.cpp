@@ -99,6 +99,15 @@ bool EMSTest::testSimple2DArray()
 }
 void EMSTest::startTest()
 {
+    // Because I hate conversions, let's make sure these work right. Hint: Before I did this, they did not.
+    QByteArray shorttest = QByteArray::fromHex("ABCDABCD");
+    assert(ConfigData::convert(shorttest,4,false) == 2882382797);
+    assert(ConfigData::convert(shorttest,4,true)== -1412584499);
+    assert(ConfigData::convert(shorttest.mid(2),2,false) == 43981);
+    assert(ConfigData::convert(shorttest.mid(2),2,true)== -21555);
+    assert(ConfigData::convert(shorttest.mid(3),1,false) == 205);
+    assert(ConfigData::convert(shorttest.mid(3),1,true)== -51);
+
     m_failure = false;
     int succeedcount = 0;
     int failcount = 0;

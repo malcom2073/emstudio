@@ -17,8 +17,6 @@
 #include "tsbptable2ddata.h"
 #include <QTimer>
 #include <QFile>
-#include "arrayconfigdata.h"
-#include "tableconfigdata.h"
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -129,7 +127,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
 
     foreach (QString line,inilist)
     {
-        if (line.startsWith(";"))
+        if (line.trimmed().startsWith(";"))
         {
             continue;
         }
@@ -388,7 +386,12 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         }
                         //scalarMap[linesplit[0].trimmed()] = scalar;
 
-                        if (linevalsplit[1].trimmed() == "S16")
+                        if (linevalsplit[1].trimmed() == "S08")
+                        {
+                            scalar.size = 1;
+                            scalar.signedval = true;
+                        }
+                        else if (linevalsplit[1].trimmed() == "S16")
                         {
                             scalar.size = 2;
                             scalar.signedval = true;
@@ -512,7 +515,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         if (linevalsplit[0].trimmed() == "scalar")
                         {
                             //Scalar
-                            TSBPConfigData *data = new TSBPConfigData();
+                            ScalarConfigData *data = new ScalarConfigData();
                             //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
                             data->setOffset(linevalsplit[2].trimmed().toInt());
                             //if (linevalsplit[0].trimmed() == "scalar")
@@ -536,29 +539,42 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                                 calclist.append(QPair<QString,double>("add",linevalsplit[5].trimmed().toFloat()));
                             }
                             data->setCalc(calclist);
-                            if (linevalsplit[1].trimmed() == "S16")
+                            if (linevalsplit[1].trimmed() == "S08")
+                            {
+                                data->setElementSize(1);
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
+
+                            }
+                            else if (linevalsplit[1].trimmed() == "S16")
                             {
                                 data->setElementSize(2);
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
+
                             }
                             else if (linevalsplit[1].trimmed() == "U08")
                             {
                                 data->setElementSize(1);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "U16")
                             {
                                 data->setElementSize(2);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "U32")
                             {
                                 data->setElementSize(4);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "S32")
                             {
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
                                 data->setElementSize(4);
                             }
                             else if (linevalsplit[1].trimmed() == "F32")
                             {
                                 data->setElementSize(4);
+                                data->setElementType(ConfigData::FLOAT_ELEMENT);
                                 data->setType(ConfigData::FLOAT);
                             }
                             //scalarMap[linesplit[0].trimmed()] = scalar;
@@ -568,8 +584,9 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                             connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
                             data->setSize(1);
                             data->setName(linesplit[0].trimmed());
-                            data->setLocationId(pagenumint);
-                            m_configDataMap[linesplit[0].trimmed()] = data;
+                            //data->setLocationId(pagenumint);
+                            //m_configDataMap[linesplit[0].trimmed()] = data;
+                            m_scalarDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
                             //pageMap[pagenum][linesplit[0].trimmed()] = scalar;
                         } //if (linevalsplit[0].trimmed() == "scalar")
@@ -857,187 +874,6 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     }
 
 
-    //Populate the saved page array map, with proper page keys.
-
-//	for (int i=0;i<arrayMap.keys().size();i++)
-//	{
-//		int pagenum = 0;
-//		m_pageArrayMap[pagenum] = arrayMap[arrayMap.keys()[i]];
-//	}
-    /*for (int i=0;i<pageArrayMap.keys().size();i++)
-    {
-        int pagenum = pageArrayMap.keys()[i].toInt();
-        QStringList split = pageIdent[pagenum].split("\\");
-        bool ok = false;
-        QString pagestr = QString("0" + split[split.size()-1].replace("\"",""));
-        pagenum = pagestr.toInt(&ok,16);
-        m_pageArrayMap[QString::number(pagenum)] = pageArrayMap.value(pageArrayMap.keys()[i]);
-    }*/
-
-
-    //Setup the 3d tables
-    /*for (QMap<QString,Table*>::const_iterator i=tableMap.constBegin();i!=tableMap.constEnd();i++)
-    {
-        //X is axis
-        //Y is values
-        TSBPTable3DData *curve = new TSBPTable3DData();
-        connect(curve,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-        connect(curve,SIGNAL(burnPage(uint)),this,SLOT(pageBurnRequested(uint)));
-        QString xbin = i.value()->xbin;
-        QString ybin = i.value()->ybin;
-        QString zbin = i.value()->zbin;
-        if (xbin.indexOf(",") != -1)
-        {
-            xbin = xbin.split(",")[0].trimmed();
-        }
-        if (ybin.indexOf(",") != -1)
-        {
-            ybin = ybin.split(",")[0].trimmed();
-        }
-        if (zbin.indexOf(",") != -1)
-        {
-            zbin = zbin.split(",")[0].trimmed();
-        }
-        //QMap<QString,arrayclass>
-        for (QMap<QString,arrayclass>::const_iterator k = arrayMap.constBegin();k != arrayMap.constEnd();k++)
-        {
-            if (k.key() == xbin)
-            {
-                curve->setXAxisMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat,k.value().min,k.value().max);
-            }
-            if (k.key() == ybin)
-            {
-                curve->setYAxisMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat,k.value().min,k.value().max);
-            }
-            if (k.key() == zbin)
-            {
-                curve->setValueMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat,k.value().xdim,k.value().ydim,k.value().min,k.value().max);
-            }
-
-        }
-        for (QMap<QString,QMap<QString,arrayclass> >::const_iterator k = m_pageArrayMap.constBegin();k!=m_pageArrayMap.constEnd();k++)
-        {
-            for (QMap<QString,arrayclass>::const_iterator j = k.value().constBegin();j!=k.value().constEnd();j++)
-            {
-
-                if (j.key() == xbin)
-                {
-                    curve->setXAxisMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat,j.value().min,j.value().max);
-                    if (!m_pageTo3DTableList.contains(k.key().toInt()))
-                     {
-                         m_pageTo3DTableList[k.key().toInt()] = QList<TSBPTable3DData*>();
-                     }
-                     if (!m_pageTo3DTableList.value(k.key().toInt()).contains(curve))
-                     {
-                         m_pageTo3DTableList[k.key().toInt()].append(curve);
-                     }
-                }
-                if (j.key() == ybin)
-                {
-                    curve->setYAxisMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat,j.value().min,j.value().max);
-                    if (!m_pageTo3DTableList.contains(k.key().toInt()))
-                     {
-                         m_pageTo3DTableList[k.key().toInt()] = QList<TSBPTable3DData*>();
-                     }
-                     if (!m_pageTo3DTableList.value(k.key().toInt()).contains(curve))
-                     {
-                         m_pageTo3DTableList[k.key().toInt()].append(curve);
-                     }
-                }
-                if (j.key() == zbin)
-                {
-                    curve->setValueMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat,j.value().xdim,j.value().ydim,j.value().min,j.value().max);
-                    if (!m_pageTo3DTableList.contains(k.key().toInt()))
-                    {
-                        m_pageTo3DTableList[k.key().toInt()] = QList<TSBPTable3DData*>();
-                    }
-                    if (!m_pageTo3DTableList.value(k.key().toInt()).contains(curve))
-                    {
-                        m_pageTo3DTableList[k.key().toInt()].append(curve);
-                    }
-                }
-            }
-        }
-        m_3dTableData[i.key()] = curve;
-    }
-
-    //Setup the 2d tables
-    for (QMap<QString,Curve*>::const_iterator i=curveMap.constBegin();i!=curveMap.constEnd();i++)
-    {
-        //X is axis
-        //Y is values
-        TSBPTable2DData *curve = new TSBPTable2DData();
-        connect(curve,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-        connect(curve,SIGNAL(burnPage(uint)),this,SLOT(pageBurnRequested(uint)));
-        QString xbin = i.value()->xbin;
-        QString ybin = i.value()->ybin;
-        if (xbin.indexOf(",") != -1)
-        {
-            xbin = xbin.split(",")[0].trimmed();
-        }
-        if (ybin.indexOf(",") != -1)
-        {
-            ybin = ybin.split(",")[0].trimmed();
-        }
-        curve->setAxisLabel(i.value()->columnLabels.first);
-        curve->setValueLabel(i.value()->columnLabels.second);
-        curve->setAxisVariable(xbin);
-        curve->setValueVariable(ybin);
-        bool foundAxisMeta = false;
-        bool foundValueMetaData = false;
-        for (QMap<QString,arrayclass>::const_iterator k = arrayMap.constBegin();k != arrayMap.constEnd();k++)
-        {
-            if (k.key() == xbin)
-            {
-                curve->setAxisMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat);
-            }
-            if (k.key() == ybin)
-            {
-                curve->setValueMetaData(0,k.value().offset,k.value().size,k.value().elementSize,k.value().scale,k.value().translate,k.value().isSigned,k.value().isfloat);
-            }
-
-        }
-        for (QMap<QString,QMap<QString,arrayclass> >::const_iterator k = m_pageArrayMap.constBegin();k!=m_pageArrayMap.constEnd();k++)
-        {
-            for (QMap<QString,arrayclass>::const_iterator j = k.value().constBegin();j!=k.value().constEnd();j++)
-            {
-
-                if (j.key() == xbin)
-                {
-                    foundAxisMeta = true;
-                    curve->setAxisMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat);
-                    if (!m_pageTo2DTableList.contains(k.key().toInt()))
-                     {
-                         m_pageTo2DTableList[k.key().toInt()] = QList<TSBPTable2DData*>();
-                     }
-                     if (!m_pageTo2DTableList.value(k.key().toInt()).contains(curve))
-                     {
-                         m_pageTo2DTableList[k.key().toInt()].append(curve);
-                     }
-                }
-                if (j.key() == ybin)
-                {
-                    foundValueMetaData = true;
-                    curve->setValueMetaData(k.key().toInt(),j.value().offset,j.value().size,j.value().elementSize,j.value().scale,j.value().translate,j.value().isSigned,j.value().isfloat);
-                    if (!m_pageTo2DTableList.contains(k.key().toInt()))
-                    {
-                        m_pageTo2DTableList[k.key().toInt()] = QList<TSBPTable2DData*>();
-                    }
-                    if (!m_pageTo2DTableList.value(k.key().toInt()).contains(curve))
-                    {
-                        m_pageTo2DTableList[k.key().toInt()].append(curve);
-                    }
-                }
-            }
-        }
-        //if (foundValueMetaData && foundAxisMeta)
-        {
-            m_2dTableData[i.key()] = curve;
-        }
-    }*/
-
-
-
 
 
     QMap<QString,QList<ConfigBlock> > configmap;
@@ -1104,43 +940,6 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     //m_dsataDecoder->setDataDefinitions(dataLogMap);
     m_memoryMetaData->passConfigData(configmap);
     m_dataDecoder->setDataDefinitions(dataLogMap);
-    //const QMap<QString,QList<ConfigBlock> > configMetaData();
-    //QList<QPair<QString,QString> > internaldialoglist;
-    /*for (QMap<QString,QList<QPair<QString,QString> > >::const_iterator i = dialogmap.constBegin();i!=dialogmap.constEnd();i++)
-    {
-        qDebug() << "dialog:" << i.key();
-        for (int j=0;j<i.value().size();j++)
-        {
-            qDebug() << "Field:" << i.value()[j].first << i.value()[j].second;
-            internaldialoglist.append(i.value()[j]);
-        }
-        menu.dialogmap[i.key()] = internaldialoglist;
-    }
-    QMap<QString,QList<ConfigBlock> > config;
-    QList<QString> internalmenulist;
-    for(QMap<QString,QList<QPair<QString,QString> > >::const_iterator i = menulist.constBegin();i != menulist.constEnd();i++)
-    {
-        qDebug() << "Menu" << i.key() << "size" << i.value().size();
-        QList<ConfigBlock> blocks;
-        internalmenulist.clear();
-        for (int j=0;j<i.value().size();j++)
-        {
-            menu.menunamemap[i.value()[j].second] = i.value()[j].first;
-            internalmenulist.append(i.value()[j].first);
-            if (dialogmap.contains(i.value()[j].first))
-            {
-                //It's a dialog!
-            }
-            if (configmap.contains(i.value()[j].first))
-            {
-                //It's a scalar!
-                blocks.append(configmap[i.value()[j].first]);
-            }
-            qDebug() << "subMenu:" << i.value()[j].first << i.value()[j].second;
-        }
-        menu.menulist.append(QPair<QString,QList<QString> >(i.key(),internalmenulist));
-        config[i.key()] = blocks;
-    }*/
 
     //_memoryMetaData->passConfigData(config);
     for (int i=0;i<menu.dialoglist.size();i++)
@@ -1313,6 +1112,14 @@ TableConfigData *MSPComms::getTableConfigData(QString name)
     if (m_tableDataMap.contains(name))
     {
         return m_tableDataMap[name];
+    }
+    return 0;
+}
+ScalarConfigData *MSPComms::getScalarConfigData(QString name)
+{
+    if (m_scalarDataMap.contains(name))
+    {
+        return m_scalarDataMap[name];
     }
     return 0;
 }
@@ -1856,6 +1663,12 @@ void MSPComms::parseBuffer(QByteArray data)
                     i.value()->setData(m_pageBufferMap[0]);
 
                 }
+                for (QMap<QString,ScalarConfigData*>::const_iterator i=m_scalarDataMap.constBegin();i!=m_scalarDataMap.constEnd();i++)
+                {
+                    i.value()->setData(m_pageBufferMap[0]);
+
+                }
+
                 for (QMap<QString,ArrayConfigData*>::const_iterator i=m_arrayDataMap.constBegin();i!=m_arrayDataMap.constEnd();i++)
                 {
                     i.value()->setData(m_pageBufferMap[0]);

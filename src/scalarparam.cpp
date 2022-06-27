@@ -26,10 +26,11 @@ void ScalarParam::setName(QString name)
 	ui->label->setText(name);
 }
 
-void ScalarParam::setConfig(ConfigData *data)
+void ScalarParam::setConfig(ScalarConfigData *data)
 {
 	connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
 	m_data = data;
+    ui->lineEdit->setText(QString::number(m_data->getValue().toFloat(),'f',2));
 //	ui->lineEdit->setText(QString::number(m_data->value().toFloat(),'f',2));
 }
 void ScalarParam::dataUpdate()

@@ -71,11 +71,17 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
 }
 
 
-
 int main(int argc, char *argv[])
 {
-    QApplication a(argc, argv);
+    QByteArray shorttest = QByteArray::fromHex("CDABCDAB");
+    assert(ConfigData::convert(shorttest,4,false) == 2882382797);
+    assert(ConfigData::convert(shorttest,4,true)== -1412584499);
+    assert(ConfigData::convert(shorttest.mid(2),2,false) == 43981);
+    assert(ConfigData::convert(shorttest.mid(2),2,true)== -21555);
+    assert(ConfigData::convert(shorttest.mid(3),1,false) == 171);
+    assert(ConfigData::convert(shorttest.mid(3),1,true)== -85);
 
+    QApplication a(argc, argv);
     //TableView3D *view = new TableView3D();
     //view->show();
     //EMSTest *test = new EMSTest();

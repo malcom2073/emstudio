@@ -34,6 +34,9 @@ public:
     void setActiveComms(MSPComms* comms);
 private:
     MSPComms *m_emsComms;
+    QMap<QTreeWidgetItem*,QString> m_treeWidgetToVariableNameMap;
+
+
     TSBPMemoryMetaData *m_metaData;
     QList<ParameterWidget*> paramWidgetList;
     QMap<QLineEdit*,ConfigBlock> lineEditToConfigBlockMap;

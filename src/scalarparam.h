@@ -11,7 +11,7 @@
 
 #include <QWidget>
 #include "configdata.h"
-
+#include "scalarconfigdata.h"
 namespace Ui {
 class ScalarParam;
 }
@@ -24,14 +24,14 @@ public:
 	explicit ScalarParam(QWidget *parent = 0);
 	~ScalarParam();
 	void setName(QString name);
-	void setConfig(ConfigData *data);
+    void setConfig(ScalarConfigData *data);
 	void saveValue();
 private slots:
 	void dataUpdate();
 	void lineEditFinished();
 private:
 	Ui::ScalarParam *ui;
-	ConfigData *m_data;
+    ScalarConfigData *m_data;
 };
 
 #endif // SCALARPARAM_H

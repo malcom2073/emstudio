@@ -24,6 +24,7 @@
 #include "memorylocationinfo.h"
 #include "arrayconfigdata.h"
 #include "tableconfigdata.h"
+#include "scalarconfigdata.h"
 class MSPComms : public QObject
 {
     Q_OBJECT
@@ -68,6 +69,13 @@ public:
         void addArg(QVariant arg,int size=0) { args.append(arg); argsize.append(size);}
     };
     MSPComms(QObject *parent=0);
+    Table* getTableFromName(QString name);
+    Curve* getCurveFromName(QString name);
+    ArrayConfigData *getArrayConfigData(QString name);
+    TableConfigData *getTableConfigData(QString name);
+    ScalarConfigData *getScalarConfigData(QString name);
+
+
     QString getPluginCompat() { return QString("MEGASQUIRT"); }
     void stop();
     void setLogsEnabled(bool enabled);
@@ -80,8 +88,7 @@ public:
     int stopBenchTest();
     int bumpBenchTest(unsigned char cyclenum);
     ConfigData* getConfigData(QString name);
-    ArrayConfigData *getArrayConfigData(QString name);
-    TableConfigData *getTableConfigData(QString name);
+
     QList<QString> getConfigList();
     void writeAllRamToRam();
     void setLogDirectory(QString dir);
@@ -120,9 +127,12 @@ public:
     int disableDatalogStream();
     void acceptLocalChanges() { };
     void rejectLocalChanges() { };
-    Table* getTableFromName(QString name);
-    Curve* getCurveFromName(QString name);
 private:
+    QMap<QString,TableConfigData*> m_tableDataMap;
+    QMap<QString,ArrayConfigData*> m_arrayDataMap;
+    QMap<QString,ScalarConfigData*> m_scalarDataMap;
+    QMap<QString,Table*> tableMap;
+    QMap<QString,Curve*> curveMap;
 
 
     int requestPage(QByteArray pagereqstring,int length);
@@ -149,8 +159,6 @@ private:
     QList<QString> m_configNameList;
     QMap<QString,TSBPTable2DData*> m_2dTableData;
     QMap<QString,TSBPTable3DData*> m_3dTableData;
-    QMap<QString,TableConfigData*> m_tableDataMap;
-    QMap<QString,ArrayConfigData*> m_arrayDataMap;
     void triggerNextSend();
 
     //QMap<QString,QMap<QString,scalarclass> > pageMap;
@@ -158,8 +166,6 @@ private:
     QMap<int,QByteArray> m_pageBufferMap;
     QMap<int,int> m_pageBufferFilledMap;
 
-    QMap<QString,Table*> tableMap;
-    QMap<QString,Curve*> curveMap;
     QMap<int,QList<TSBPTable2DData*> > m_pageTo2DTableList;
     QMap<int,QList<TSBPTable3DData*> > m_pageTo3DTableList;
     QList<int> m_dirtyPageList;

@@ -143,7 +143,7 @@ void ParameterWidget::updateValue(unsigned short locationid,QByteArray block)
         }
     }
 }
-void ParameterWidget::addParam(QString title,DialogField field,ConfigData* data)
+void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData* data)
 {
     Q_UNUSED(title)
     Q_UNUSED(field)
@@ -156,6 +156,16 @@ void ParameterWidget::addParam(QString title,DialogField field,ConfigData* data)
     //m_nameToLineEditMap[field.variable] = edit;
     //edit->show();
     //layout->addWidget(edit);
+    ScalarParam *param = new ScalarParam(ui.scrollArea->widget());
+    param->show();
+    param->setName(field.title);
+    param->setConfig(data);
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(param);
+    ui.scrollArea->widget()->layout()->addItem(layout);
+    m_scalarParamList.append(param);
+
+    /*
     if (data->type() == ConfigData::VALUE)
     {
         ScalarParam *param = new ScalarParam(ui.scrollArea->widget());
@@ -178,7 +188,7 @@ void ParameterWidget::addParam(QString title,DialogField field,ConfigData* data)
         ui.scrollArea->widget()->layout()->addItem(layout);
         //m_scalarParamList.append(param);
         m_comboParamList.append(param);
-    }
+    }*/
 }
 
 /*void ParameterWidget::addParam(QString title,DialogField field,ConfigBlock block)

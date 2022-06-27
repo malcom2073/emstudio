@@ -58,7 +58,53 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
         //It is a top level item. don't do anything
         return;
     }
-    for (int i=0;i<m_metaMenu.menulist.size();i++)
+    if (!m_treeWidgetToVariableNameMap.contains(current))
+    {
+        qDebug() << "No child widget found for parameterview";
+        return;
+    }
+    QString variablename = m_treeWidgetToVariableNameMap[current];
+    //QLOG_DEBUG() << "Variable:" << m_metaMenu.menulist[i].subMenuList[j].variable;
+    emit showTable(variablename);
+    bool found = false;
+    for (int k=0;k<m_metaMenu.dialoglist.size();k++)
+    {
+        if (m_metaMenu.dialoglist[k].variable == variablename)
+        {
+            //QLOG_DEBUG() << "Found Dialog:" << m_metaMenu.dialoglist[k].title << m_metaMenu.dialoglist[k].fieldList.size();
+            if (m_metaMenu.dialoglist[k].panelList.size() > 0)
+            {
+                //Has sub-panels, find and populate them.
+            }
+            found = true;
+            generateDialog(m_metaMenu.dialoglist[k]);
+            //Generate a dialog here.
+        }
+    }
+    if (!found)
+    {
+        Table* table = m_emsComms->getTableFromName(variablename);
+        if (table)
+        {
+            ParameterWidget *widget = new ParameterWidget();
+            connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
+            widget->show();
+            paramWidgetList.append(widget);
+            ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
+            ArrayConfigData *ydata = m_emsComms->getArrayConfigData(table->ybin);
+            TableConfigData *zdata = m_emsComms->getTableConfigData(table->zbin);
+            if (xdata && ydata && zdata)
+            {
+                widget->addTable(xdata,ydata,zdata);
+            }
+        }
+        else
+        {
+
+        }
+        //No dialog found, show the raw data type.
+    }
+    /*for (int i=0;i<m_metaMenu.menulist.size();i++)
     {
         if (m_metaMenu.menulist[i].title == current->parent()->text(0))
         {
@@ -101,7 +147,10 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
                                 ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
                                 ArrayConfigData *ydata = m_emsComms->getArrayConfigData(table->ybin);
                                 TableConfigData *zdata = m_emsComms->getTableConfigData(table->zbin);
-                                widget->addTable(xdata,ydata,zdata);
+                                if (xdata && ydata && zdata)
+                                {
+                                    widget->addTable(xdata,ydata,zdata);
+                                }
                             }
                             else
                             {
@@ -113,7 +162,7 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
                 }
             }
         }
-    }
+    }*/
 }
 
 void ParameterView::generateDialog(DialogItem item)
@@ -126,6 +175,7 @@ void ParameterView::generateDialog(DialogItem item)
     QString title = item.title;
     QList<DialogField> fieldlist = item.fieldList;
     ParameterWidget *widget = new ParameterWidget();
+    widget->setWindowTitle(item.title);
     connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
     widget->show();
     paramWidgetList.append(widget);
@@ -134,10 +184,14 @@ void ParameterView::generateDialog(DialogItem item)
         Table* table = m_emsComms->getTableFromName(item.panelList[i].second);
         if (table)
         {
+            widget->setWindowTitle(table->title);
             ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
             ArrayConfigData *ydata = m_emsComms->getArrayConfigData(table->ybin);
             TableConfigData *zdata = m_emsComms->getTableConfigData(table->zbin);
-            widget->addTable(xdata,ydata,zdata);
+            if (xdata && ydata && zdata)
+            {
+                widget->addTable(xdata,ydata,zdata);
+            }
         }
     }
     for (int i=0;i<fieldlist.size();i++)
@@ -145,7 +199,12 @@ void ParameterView::generateDialog(DialogItem item)
         //QLOG_DEBUG() << "Field:" << fieldlist[i].title << fieldlist[i].variable;
         if (m_emsComms->getConfigList().contains(fieldlist[i].variable))
         {
-            widget->addParam(title,fieldlist[i],m_emsComms->getConfigData(fieldlist[i].variable));
+            ScalarConfigData *data = m_emsComms->getScalarConfigData(fieldlist[i].variable);
+            //widget->addParam(title,fieldlist[i],m_emsComms->getConfigData(fieldlist[i].variable));
+            if (data)
+            {
+                widget->addParam(title,fieldlist[i],data);
+            }
         }
         else
         {
@@ -221,7 +280,9 @@ void ParameterView::passMenuList(MenuSetup menu)
             //{
             //	item->addChild(new QTreeWidgetItem(QStringList() << menu.menulist[i].second[j]));
             //}
-            item->addChild(new QTreeWidgetItem(QStringList() << menu.menulist[i].subMenuList[j].title << menu.menulist[i].subMenuList[j].variable));
+            QTreeWidgetItem *childitem = new QTreeWidgetItem(QStringList() << menu.menulist[i].subMenuList[j].title << menu.menulist[i].subMenuList[j].variable);
+            m_treeWidgetToVariableNameMap[childitem] = menu.menulist[i].subMenuList[j].variable;
+            item->addChild(childitem);
         }
     }
 }

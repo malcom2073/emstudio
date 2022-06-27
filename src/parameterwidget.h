@@ -18,6 +18,7 @@
 #include "dialogfield.h"
 #include "scalarparam.h"
 #include "comboparam.h"
+#include "scalarconfigdata.h"
 #include "ui_parameterwidget.h"
 class Table;
 class ArrayConfigData;
@@ -31,7 +32,7 @@ public:
     QList<unsigned short> getLocationIdList();
     void updateValue(unsigned short locationid,QByteArray block);
     void setValueRamFlash(unsigned short locationid,bool isRam,bool isFlash);
-    void addParam(QString title,DialogField field,ConfigData* data);
+    void addParam(QString title,DialogField field,ScalarConfigData* data);
     void addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata);
 private:
     double calcAxis(int val,QList<QPair<QString,double> > metadata);
