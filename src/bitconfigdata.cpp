@@ -33,6 +33,7 @@ void BitConfigData::setData(QByteArray data)
         }
         unsigned int mydataint = ConfigData::convert(mydata,m_elementSize,false).toUInt();
         mydataint &= buf;
+        mydataint = mydataint >> i.value().startbit;
         m_valueMap[i.key()] = mydataint;
     }
 }

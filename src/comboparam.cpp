@@ -39,6 +39,7 @@ void ComboParam::setConfig(QString variable,BitConfigData *data)
     {
         ui->comboBox->addItem(bitfields.at(i));
     }
+    ui->comboBox->setCurrentText(m_data->getValue(variable).toString());
     //connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
     //connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
 }
