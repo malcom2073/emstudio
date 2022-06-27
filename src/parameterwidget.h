@@ -33,6 +33,7 @@ public:
     void updateValue(unsigned short locationid,QByteArray block);
     void setValueRamFlash(unsigned short locationid,bool isRam,bool isFlash);
     void addParam(QString title,DialogField field,ScalarConfigData* data);
+    void addParam(QString title,DialogField field,BitConfigData* data);
     void addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata);
 private:
     double calcAxis(int val,QList<QPair<QString,double> > metadata);

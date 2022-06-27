@@ -11,7 +11,7 @@
 
 #include <QWidget>
 #include "configdata.h"
-
+#include "bitconfigdata.h"
 namespace Ui {
 class ComboParam;
 }
@@ -24,14 +24,15 @@ public:
 	explicit ComboParam(QWidget *parent = 0);
 	~ComboParam();
 	void setName(QString name);
-	void setConfig(ConfigData *data);
+    void setConfig(QString variable,BitConfigData *data);
 	void saveValue();
 private slots:
 	void dataUpdate();
 	void currentIndexChanged(int index);
 private:
 	Ui::ComboParam *ui;
-	ConfigData *m_data;
+    BitConfigData *m_data;
+    QString m_name;
 };
 
 #endif // COMBOPARAM_H

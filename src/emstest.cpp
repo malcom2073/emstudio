@@ -100,13 +100,14 @@ bool EMSTest::testSimple2DArray()
 void EMSTest::startTest()
 {
     // Because I hate conversions, let's make sure these work right. Hint: Before I did this, they did not.
-    QByteArray shorttest = QByteArray::fromHex("ABCDABCD");
+    // This won't match what PC calculator will tell you, becaues of byte ordering... but it seems to match the ECU.
+    QByteArray shorttest = QByteArray::fromHex("CDABCDAB");
     assert(ConfigData::convert(shorttest,4,false) == 2882382797);
     assert(ConfigData::convert(shorttest,4,true)== -1412584499);
     assert(ConfigData::convert(shorttest.mid(2),2,false) == 43981);
     assert(ConfigData::convert(shorttest.mid(2),2,true)== -21555);
-    assert(ConfigData::convert(shorttest.mid(3),1,false) == 205);
-    assert(ConfigData::convert(shorttest.mid(3),1,true)== -51);
+    assert(ConfigData::convert(shorttest.mid(3),1,false) == 171);
+    assert(ConfigData::convert(shorttest.mid(3),1,true)== -85);
 
     m_failure = false;
     int succeedcount = 0;
@@ -150,6 +151,14 @@ void EMSTest::interrogationCompleted()
     qDebug() << "Finished interrogation!";
     // At this point, all the memory in m_comms should be valid and equal to the msq from TS.
     //TSBPConfigData *data = qobject_cast<TSBPConfigData*>(m_comms->getConfigData("lambdaTable"));
+    BitConfigData *bitdata = m_comms->getBitConfigData("map_sensor_type");
+    if (!bitdata)
+    {
+        qDebug() << "Unable ot cast for map_sensor_type";
+        return;
+    }
+    qDebug() << "Enginetype: " << bitdata->getValue("map_sensor_type");
+    return;
     ArrayConfigData *data = m_comms->getArrayConfigData("lambdaLoadBins");
 
     if (!data)

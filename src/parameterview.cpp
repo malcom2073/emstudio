@@ -205,6 +205,15 @@ void ParameterView::generateDialog(DialogItem item)
             {
                 widget->addParam(title,fieldlist[i],data);
             }
+            else
+            {
+                BitConfigData *bdata = m_emsComms->getBitConfigData(fieldlist[i].variable);
+                if (bdata)
+                {
+                    widget->addParam(title,fieldlist[i],bdata);
+                    //widget->
+                }
+            }
         }
         else
         {

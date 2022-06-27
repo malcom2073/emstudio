@@ -592,27 +592,75 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         } //if (linevalsplit[0].trimmed() == "scalar")
                         else if (linevalsplit[0].trimmed() == "bits")
                         {
-                            TSBPConfigData *data = new TSBPConfigData();
-                            connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-                            connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
+
+                            //TSBPConfigData *data = new TSBPConfigData();
+                            //connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
+                            //connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
                             unsigned int offset = linevalsplit[2].trimmed().toInt();
+                            BitConfigData *data;
+                            if (m_bitDataLocationMap.contains(offset))
+                            {
+                                data = m_bitDataLocationMap[offset];
+                            }
+                            else
+                            {
+                                data = new BitConfigData();
+                            }
                             QString bits = linevalsplit[3].trimmed().replace("[","").replace("]","");
                             unsigned int min = bits.split(":")[0].toInt();
                             unsigned int max = bits.split(":")[1].toInt();
-                            QStringList bitarray;
+                            QList<QString> bitarray;
                             for (int i=4;i<linevalsplit.size();i++)
                             {
                                 bitarray.append(linevalsplit[i].trimmed().replace("\"",""));
                             }
-                            data->setEnumValues(bitarray);
-                            data->setEnumBits(min,max);
+                            data->addBitField(linesplit[0].trimmed(),min,max,bitarray);
+                            //data->setEnumValues(bitarray);
+                            //data->setEnumBits(min,max);
                             data->setType(ConfigData::ENUM);
                             data->setOffset(offset);
-                            data->setElementSize(1);
-                            data->setSize(1);
+                            if (linevalsplit[1].trimmed() == "S08")
+                            {
+                                data->setElementSize(1);
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
+
+                            }
+                            else if (linevalsplit[1].trimmed() == "S16")
+                            {
+                                data->setElementSize(2);
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
+
+                            }
+                            else if (linevalsplit[1].trimmed() == "U08")
+                            {
+                                data->setElementSize(1);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+                            }
+                            else if (linevalsplit[1].trimmed() == "U16")
+                            {
+                                data->setElementSize(2);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+                            }
+                            else if (linevalsplit[1].trimmed() == "U32")
+                            {
+                                data->setElementSize(4);
+                                data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+                            }
+                            else if (linevalsplit[1].trimmed() == "S32")
+                            {
+                                data->setElementType(ConfigData::SIGNED_ELEMENT);
+                                data->setElementSize(4);
+                            }
+                            else if (linevalsplit[1].trimmed() == "F32")
+                            {
+                                data->setElementSize(4);
+                                data->setElementType(ConfigData::FLOAT_ELEMENT);
+                                data->setType(ConfigData::FLOAT);
+                            }
                             data->setName(linesplit[0].trimmed());
-                            data->setLocationId(pagenumint);
-                            m_configDataMap[linesplit[0].trimmed()] = data;
+                            m_bitDataNameMap[linesplit[0].trimmed()] = data;
+                            //data->setLocationId(pagenumint);
+                            //m_configDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
                         }
                         else if (linevalsplit[0].trimmed() == "array")
@@ -1120,6 +1168,14 @@ ScalarConfigData *MSPComms::getScalarConfigData(QString name)
     if (m_scalarDataMap.contains(name))
     {
         return m_scalarDataMap[name];
+    }
+    return 0;
+}
+BitConfigData *MSPComms::getBitConfigData(QString name)
+{
+    if (m_bitDataNameMap.contains(name))
+    {
+        return m_bitDataNameMap[name];
     }
     return 0;
 }
@@ -1668,6 +1724,11 @@ void MSPComms::parseBuffer(QByteArray data)
                     i.value()->setData(m_pageBufferMap[0]);
 
                 }
+                for (QMap<QString,BitConfigData*>::const_iterator i=m_bitDataNameMap.constBegin();i!=m_bitDataNameMap.constEnd();i++)
+                {
+                    i.value()->setData(m_pageBufferMap[0]);
+                }
+
 
                 for (QMap<QString,ArrayConfigData*>::const_iterator i=m_arrayDataMap.constBegin();i!=m_arrayDataMap.constEnd();i++)
                 {

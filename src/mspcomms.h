@@ -25,6 +25,7 @@
 #include "arrayconfigdata.h"
 #include "tableconfigdata.h"
 #include "scalarconfigdata.h"
+#include "bitconfigdata.h"
 class MSPComms : public QObject
 {
     Q_OBJECT
@@ -74,6 +75,7 @@ public:
     ArrayConfigData *getArrayConfigData(QString name);
     TableConfigData *getTableConfigData(QString name);
     ScalarConfigData *getScalarConfigData(QString name);
+    BitConfigData *getBitConfigData(QString name);
 
 
     QString getPluginCompat() { return QString("MEGASQUIRT"); }
@@ -133,6 +135,8 @@ private:
     QMap<QString,ScalarConfigData*> m_scalarDataMap;
     QMap<QString,Table*> tableMap;
     QMap<QString,Curve*> curveMap;
+    QMap<unsigned int,BitConfigData*> m_bitDataLocationMap;
+    QMap<QString,BitConfigData*> m_bitDataNameMap;
 
 
     int requestPage(QByteArray pagereqstring,int length);

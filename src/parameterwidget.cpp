@@ -190,6 +190,55 @@ void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData*
         m_comboParamList.append(param);
     }*/
 }
+void ParameterWidget::addParam(QString title,DialogField field,BitConfigData* data)
+{
+    Q_UNUSED(title)
+    Q_UNUSED(field)
+    //QHBoxLayout *layout = new QHBoxLayout();
+    //QLabel *label = new QLabel(scrollArea);
+    //label->show();
+    //label->setText(field.title);
+    //layout->addWidget(label);
+    //QLineEdit *edit = new QLineEdit(scrollArea);
+    //m_nameToLineEditMap[field.variable] = edit;
+    //edit->show();
+    //layout->addWidget(edit);
+    ComboParam *param = new ComboParam(ui.scrollArea->widget());
+    param->show();
+    param->setName(field.title);
+    param->setConfig(field.variable,data);
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(param);
+    ui.scrollArea->widget()->layout()->addItem(layout);
+    //m_scalarParamList.append(param);
+    m_comboParamList.append(param);
+
+
+    /*
+    if (data->type() == ConfigData::VALUE)
+    {
+        ScalarParam *param = new ScalarParam(ui.scrollArea->widget());
+        param->show();
+        param->setName(field.title);
+        param->setConfig(data);
+        QHBoxLayout *layout = new QHBoxLayout();
+        layout->addWidget(param);
+        ui.scrollArea->widget()->layout()->addItem(layout);
+        m_scalarParamList.append(param);
+    }
+    else if (data->type() == ConfigData::ENUM)
+    {
+        ComboParam *param = new ComboParam(ui.scrollArea->widget());
+        param->show();
+        param->setName(field.title);
+        param->setConfig(data);
+        QHBoxLayout *layout = new QHBoxLayout();
+        layout->addWidget(param);
+        ui.scrollArea->widget()->layout()->addItem(layout);
+        //m_scalarParamList.append(param);
+        m_comboParamList.append(param);
+    }*/
+}
 
 /*void ParameterWidget::addParam(QString title,DialogField field,ConfigBlock block)
 {

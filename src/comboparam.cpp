@@ -24,16 +24,23 @@ ComboParam::~ComboParam()
 void ComboParam::setName(QString name)
 {
 	ui->label->setText(name);
+    m_name = name;
 }
 
-void ComboParam::setConfig(ConfigData *data)
+void ComboParam::setConfig(QString variable,BitConfigData *data)
 {
-	disconnect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
+//	disconnect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
 //	ui->comboBox->addItems(data->getEnumValues());
 //	ui->comboBox->setCurrentIndex(data->value().toInt());
 	m_data = data;
-	connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
-	connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
+    ui->comboBox->clear();
+    QList<QString> bitfields = data->getBitFields(variable);
+    for (int i=0;i<bitfields.length();i++)
+    {
+        ui->comboBox->addItem(bitfields.at(i));
+    }
+    //connect(data,SIGNAL(update()),this,SLOT(dataUpdate()));
+    //connect(ui->comboBox,SIGNAL(currentIndexChanged(int)),this,SLOT(currentIndexChanged(int)));
 }
 
 void ComboParam::saveValue()
