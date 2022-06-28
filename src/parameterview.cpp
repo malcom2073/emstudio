@@ -165,7 +165,7 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
     }*/
 }
 
-void ParameterView::generateDialog(DialogItem item)
+void ParameterView::generateDialog(DialogItem item,QString dir,ParameterWidget *parent)
 {
     //QString title,QList<DialogField> fieldlist
     if (item.panelList.size() > 0)
@@ -174,10 +174,54 @@ void ParameterView::generateDialog(DialogItem item)
     }
     QString title = item.title;
     QList<DialogField> fieldlist = item.fieldList;
-    ParameterWidget *widget = new ParameterWidget();
+    ParameterWidget *widget;
+    if (parent)
+    {
+        widget = new ParameterWidget(parent);
+        widget->disableSaveButton();
+        parent->addPanel(widget,dir);
+    }
+    else
+    {
+        widget = new ParameterWidget();
+    }
     widget->setWindowTitle(item.title);
     connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
     widget->show();
+    for (QMap<QString,DialogItem>::const_iterator i=item.panelMap.constBegin();i!=item.panelMap.constEnd();i++)
+    {
+        //generateDialog(i.value(),widget);
+    }
+    if (item.panelList.size() > 0)
+    {
+        //We have subpanels! Create them
+        for (int i=0;i<item.panelList.size();i++)
+        {
+            for (int j=0;j<this->m_metaMenu.dialoglist.size();j++)
+            {
+                if (this->m_metaMenu.dialoglist.at(j).variable == item.panelList.at(i).second)
+                {
+                    if (item.panelList.at(i).first == "East")
+                    {
+                        generateDialog(this->m_metaMenu.dialoglist.at(j),"East",widget);
+                    }
+                    else if (item.panelList.at(i).first == "Center")
+                    {
+                        generateDialog(this->m_metaMenu.dialoglist.at(j),"Center",widget);
+                    }
+                    else if (item.panelList.at(i).first == "West")
+                    {
+                        generateDialog(this->m_metaMenu.dialoglist.at(j),"West",widget);
+                    }
+                    else
+                    {
+                        generateDialog(this->m_metaMenu.dialoglist.at(j),"",widget);
+                    }
+                }
+            }
+        }
+        //generateDialog()
+    }
     paramWidgetList.append(widget);
     for (int i=0;i<item.panelList.size();i++)
     {

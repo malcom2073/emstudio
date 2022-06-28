@@ -254,7 +254,20 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
                         {
                         QString panelname = panelsplit[0].trimmed();
                         QString panelloc = panelsplit[1].trimmed();
+                        if (panelloc == "West" || panelloc == "Center" || panelloc == "East")
+                        {
                         currentDialogItem.panelList.append(QPair<QString,QString>(panelloc,panelname));
+                        }
+                        else
+                        {
+                            //Conditional panel, not a location
+                            currentDialogItem.panelList.append(QPair<QString,QString>(panelloc,panelname));
+                        }
+                        }
+                        else
+                        {
+                        QString panelname = panelsplit[0].trimmed();
+                        currentDialogItem.panelList.append(QPair<QString,QString>("noloc",panelname));
                         }
                     }
                 }

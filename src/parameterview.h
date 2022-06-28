@@ -25,7 +25,7 @@ public:
     explicit ParameterView(QWidget *parent = 0);
     void passMenuList(MenuSetup menu);
     void passConfigBlockList(QMap<QString,QList<ConfigBlock> > blocklist);
-    void generateDialog(DialogItem item);
+    void generateDialog(DialogItem item,QString dir="",ParameterWidget *parent=0);
     //void passEmsData(EmsData *data);
     void passMetaData(TSBPMemoryMetaData *metadata);
     void updateValues();

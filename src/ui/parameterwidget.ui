@@ -15,21 +15,10 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <widget class="QScrollArea" name="scrollArea">
-     <property name="widgetResizable">
-      <bool>true</bool>
-     </property>
-     <widget class="QWidget" name="scrollAreaWidgetContents">
-      <property name="geometry">
-       <rect>
-        <x>0</x>
-        <y>0</y>
-        <width>762</width>
-        <height>533</height>
-       </rect>
-      </property>
-     </widget>
-    </widget>
+    <layout class="QVBoxLayout" name="mainVerticalLayout"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="mainHorizontalLayout"/>
    </item>
    <item>
     <widget class="QPushButton" name="savePushButton">

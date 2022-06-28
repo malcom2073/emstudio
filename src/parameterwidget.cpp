@@ -25,8 +25,8 @@ ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
     //scrollWidget->setLayout(new QVBoxLayout());
     //scrollArea->setWidget(scrollWidget);
     //scrollArea->setWidget(new QWidget());
-    ui.scrollArea->widget()->setLayout(new QVBoxLayout());
-    ui.scrollArea->widget()->layout()->setSizeConstraint(QLayout::SetMinAndMaxSize);
+    //ui.scrollArea->widget()->setLayout(new QVBoxLayout());
+    //ui.scrollArea->widget()->layout()->setSizeConstraint(QLayout::SetMinAndMaxSize);
     //scrollArea->setLayout(new QVBoxLayout());
     //mainLayout = new QVBoxLayout();
     //this->setLayout(mainLayout);
@@ -38,12 +38,13 @@ ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
 }
 void ParameterWidget::addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata)
 {
-    TableView3D *table = new TableView3D(ui.scrollArea->widget());
+    TableView3D *table = new TableView3D(this);
     table->setData("Lambda",xdata,ydata,zdata);
     table->show();
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(table);
-    ui.scrollArea->widget()->layout()->addItem(layout);
+    //ui.scrollArea->widget()->layout()->addItem(layout);
+    ui.mainVerticalLayout->addItem(layout);
 
 }
 void ParameterWidget::saveButtonClicked()
@@ -143,6 +144,35 @@ void ParameterWidget::updateValue(unsigned short locationid,QByteArray block)
         }
     }
 }
+void ParameterWidget::disableSaveButton()
+{
+    ui.savePushButton->setVisible(false);
+}
+void ParameterWidget::addPanel(QWidget *panel,QString dir)
+{
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(panel);
+    if (dir.isEmpty())
+    {
+        if (ui.mainHorizontalLayout)
+        {
+            ui.mainHorizontalLayout->deleteLater();
+            ui.mainHorizontalLayout = 0;
+        }
+        ui.mainVerticalLayout->addLayout(layout);
+    }
+    else
+    {
+        if (ui.mainVerticalLayout)
+        {
+            ui.mainVerticalLayout->deleteLater();
+            ui.mainVerticalLayout = 0;
+        }
+        ui.mainHorizontalLayout->addLayout(layout);
+    }
+    //ui.scrollArea->widget()->layout()->addItem(layout);
+    //m_scalarParamList.append(panel);
+}
 void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData* data)
 {
     Q_UNUSED(title)
@@ -156,13 +186,14 @@ void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData*
     //m_nameToLineEditMap[field.variable] = edit;
     //edit->show();
     //layout->addWidget(edit);
-    ScalarParam *param = new ScalarParam(ui.scrollArea->widget());
+    ScalarParam *param = new ScalarParam(this);
     param->show();
     param->setName(field.title);
     param->setConfig(data);
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(param);
-    ui.scrollArea->widget()->layout()->addItem(layout);
+    //ui.scrollArea->widget()->layout()->addItem(layout);
+    ui.mainVerticalLayout->addItem(layout);
     m_scalarParamList.append(param);
 
     /*
@@ -203,13 +234,14 @@ void ParameterWidget::addParam(QString title,DialogField field,BitConfigData* da
     //m_nameToLineEditMap[field.variable] = edit;
     //edit->show();
     //layout->addWidget(edit);
-    ComboParam *param = new ComboParam(ui.scrollArea->widget());
+    ComboParam *param = new ComboParam(this);
     param->show();
     param->setName(field.title);
     param->setConfig(field.variable,data);
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(param);
-    ui.scrollArea->widget()->layout()->addItem(layout);
+    //ui.scrollArea->widget()->layout()->addItem(layout);
+    ui.mainVerticalLayout->addItem(layout);
     //m_scalarParamList.append(param);
     m_comboParamList.append(param);
 

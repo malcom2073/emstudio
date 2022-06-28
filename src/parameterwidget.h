@@ -35,6 +35,8 @@ public:
     void addParam(QString title,DialogField field,ScalarConfigData* data);
     void addParam(QString title,DialogField field,BitConfigData* data);
     void addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata);
+    void addPanel(QWidget *panel,QString dir);
+    void disableSaveButton();
 private:
     double calcAxis(int val,QList<QPair<QString,double> > metadata);
     int backConvertAxis(double val,QList<QPair<QString,double> > metadata);

@@ -92,49 +92,8 @@ int main(int argc, char *argv[])
 
    // param->passConfigBlockList(comm->getMetaParser()->configMetaData());
    // param->passMenuList(comm->getMetaParser()->menuMetaData());
-/*    QSerialPort serial;
-    serial.setPortName("\\\\.\\COM100");
-    serial.setBaudRate(9600);
-    serial.setFlowControl(QSerialPort::NoFlowControl);
-    qDebug() << "Opening port!";
-    if (!serial.open(QIODevice::ReadWrite))
-    {
-        qDebug() << "Error opening port";
-        return -1;
-    }
-    QByteArray requestData = QString("S\r\n").toLatin1();
-    //serial.write(requestData);
-
-    QByteArray req = "V";
-    uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
-    QByteArray packet;
-    packet.append((char)0x00);
-    packet.append(0x01);
-    packet.append(req);
-    packet.append(crc >> 24);
-    packet.append(crc >> 16);
-    packet.append(crc >> 8);
-    packet.append(crc >> 0);
-    qDebug() << packet;
-    serial.write(packet);
 
 
-    if (!serial.waitForBytesWritten(5000))
-    {
-        qDebug() << "Write timeout";
-        serial.close();
-        return -1;
-    }
-    if (serial.waitForReadyRead(5000))
-    {
-        QByteArray responseData = serial.readAll();
-        qDebug() << responseData;
-    }
-    else
-    {
-        qDebug() << "Timeout on ready read";
-    }
-    serial.close();*/
     MainWindow w;
     w.show();
     return a.exec();
