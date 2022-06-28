@@ -71,28 +71,11 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
     return( crc32 ^ 0xFFFFFFFF );
 }
 
-
-MSPComms::MSPComms(QObject *parent) : QObject(parent)
+void MSPComms::loadIniFile(QFile *inifile)
 {
-    qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
-    m_connected = false;
-    m_dataDecoder = new TSBPDataPacketDecoder();
-    connect(this,SIGNAL(dataLogPayloadReceived(QByteArray)),m_dataDecoder,SLOT(decodePayload(QByteArray)));
-    connect(m_dataDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
-    m_memoryMetaData = new TSBPMemoryMetaData();
-    qRegisterMetaType<QList<unsigned short> >("QList<unsigned short>");
-    currentPacketNum=1;
-    m_interrogateInProgress = false;
-    QTimer *timer = new QTimer();
-    connect(timer,SIGNAL(timeout()),this,SLOT(packetCounter()));
-    timer->start(10000);
-    m_threadRun = true;
-    m_waitingForPacketResponse = false;
-
-    QFile inifile("ms.ini");
-    inifile.open(QIODevice::ReadOnly);
-    QString inistring = inifile.readAll();
-    inifile.close();
+    inifile->open(QIODevice::ReadOnly);
+    QString inistring = inifile->readAll();
+    inifile->close();
     QStringList inilist = inistring.split("\n");
     QVariantMap map;
     QMap<QString,scalarclass> scalarMap;
@@ -122,8 +105,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     bool indialog = false;
     MenuSetup menu;
     int pagenumint = 0;
-    savePageTimer = new QTimer(this);
-    connect(savePageTimer,SIGNAL(timeout()),this,SLOT(savePageTimerTick()));
+
 
     foreach (QString line,inilist)
     {
@@ -1020,6 +1002,40 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
         }
     }
     m_memoryMetaData->setMenuMetaData(menu);
+    m_iniFileLoaded = true;
+    QByteArray pagereq;
+    pagereq.append("R");
+    //pagereq.append((char)0x0); // CANID
+    //pagereq.append((char)0x0); // TABLEID
+    //pagereq.append((char)0x0);
+    //pagereq.append((char)0x0);
+    //pagereq.append((char)0x4E);
+    //pagereq.append((char)0x20);
+    interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
+
+}
+MSPComms::MSPComms(QObject *parent) : QObject(parent)
+{
+    qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
+    m_connected = false;
+    m_iniFileLoaded = false;
+    m_dataDecoder = new TSBPDataPacketDecoder();
+    connect(this,SIGNAL(dataLogPayloadReceived(QByteArray)),m_dataDecoder,SLOT(decodePayload(QByteArray)));
+    connect(m_dataDecoder,SIGNAL(payloadDecoded(QVariantMap)),this,SIGNAL(dataLogPayloadDecoded(QVariantMap)));
+    m_memoryMetaData = new TSBPMemoryMetaData();
+    qRegisterMetaType<QList<unsigned short> >("QList<unsigned short>");
+    currentPacketNum=1;
+    m_interrogateInProgress = false;
+    QTimer *timer = new QTimer();
+    connect(timer,SIGNAL(timeout()),this,SLOT(packetCounter()));
+    timer->start(10000);
+    m_threadRun = true;
+    m_waitingForPacketResponse = false;
+    savePageTimer = new QTimer(this);
+    connect(savePageTimer,SIGNAL(timeout()),this,SLOT(savePageTimerTick()));
+
+    connect(&m_fileDownloader,&FileDownloader::fileDownloaded,this,&MSPComms::fileDownloaded);
+
 }
 Table* MSPComms::getTableFromName(QString name)
 {
@@ -1260,7 +1276,7 @@ void MSPComms::startInterrogation()
         //pagereq.append((char)0x0);
         //pagereq.append((char)0x4E);
         //pagereq.append((char)0x20);
-        interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
+        //interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
         //interrogateTaskStart("Location ID 2",requestPage("P\002",64));
         //interrogateTaskStart("Location ID 3",requestPage("P\003",288));
         //interrogateTaskStart("Location ID 4",requestPage("P\004",64));
@@ -1664,6 +1680,12 @@ void MSPComms::handleReadyRead()
         triggerNextSend();
     }
 }
+void MSPComms::fileDownloaded(QFile *file)
+{
+    loadIniFile(file);
+    delete file; // Have to do this here, noone else owns the pointer.
+
+}
 void MSPComms::parseBuffer(QByteArray data)
 {
     //Ignore data, everything is in m_serialPortBuffer
@@ -1687,6 +1709,15 @@ void MSPComms::parseBuffer(QByteArray data)
             QString versionstr(data);
             emit interrogateTaskSucceed(m_currentRequest.sequencenumber);
             qDebug() << "Got firmware version:" << versionstr;
+            //"rusEFI 2022.06.25.all.2759818183\u0000
+            QStringList versionstrlist = versionstr.mid(0,versionstr.length()-1).replace("\"","").split(" ");
+            QString path = "https://rusefi.com/online/ini/rusefi/" + versionstrlist[1].replace(".","/") + ".ini";
+            if (!m_iniFileLoaded)
+            {
+                m_fileDownloader.downloadFile(path,"");
+                //loadIniFile("inifilehere.ini");
+            }
+
         }
         else if (m_currentRequest.type == GET_DATA)
         {

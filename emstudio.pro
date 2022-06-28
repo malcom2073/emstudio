@@ -1,4 +1,4 @@
-QT       += core gui opengl
+QT       += core gui opengl network
 QT += serialport
 QT += openglwidgets
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
@@ -11,6 +11,7 @@ CONFIG += c++17
 LIBS += -lOpenGL32# -lglut32
 LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
+    src/filedownloader.cpp \
     src/scalarconfigdata.cpp \
     src/bitconfigdata.cpp \
     src/comboparam.cpp \
@@ -36,6 +37,7 @@ SOURCES += \
     src/tableviewnew3d.cpp
 
 HEADERS += \
+    src/filedownloader.h \
     src/scalarconfigdata.h \
     src/bitconfigdata.h \
     src/comboparam.h \

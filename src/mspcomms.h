@@ -26,6 +26,7 @@
 #include "tableconfigdata.h"
 #include "scalarconfigdata.h"
 #include "bitconfigdata.h"
+#include "filedownloader.h"
 class MSPComms : public QObject
 {
     Q_OBJECT
@@ -137,6 +138,9 @@ private:
     QMap<QString,Curve*> curveMap;
     QMap<unsigned int,BitConfigData*> m_bitDataLocationMap;
     QMap<QString,BitConfigData*> m_bitDataNameMap;
+    void loadIniFile(QFile *inifile);
+    bool m_iniFileLoaded;
+    FileDownloader m_fileDownloader;
 
 
     int requestPage(QByteArray pagereqstring,int length);
@@ -220,6 +224,9 @@ signals:
     void memoryClean();
 
 private slots:
+    void fileDownloaded(QFile *file);
+
+
     void handleReadyRead();
     void savePageTimerTick();
     void packetCounter();
