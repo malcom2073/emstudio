@@ -22,7 +22,8 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
-
+public slots:
+    void connectionSelection(bool isserial,QString comorhost,int portorbaud);
 private:
     Ui::MainWindow *ui;
     MSPComms *m_comms;

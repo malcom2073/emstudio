@@ -115,7 +115,7 @@ public:
     int hardReset();
     QMap<int,int> m_pageSizeMap;
     bool sendSimplePacket(unsigned short payload);
-    void connectSerial(QString port,int baud);
+    void connectSerial(bool isserial,QString port,int baud);
     void disconnectSerial();
     void loadLog(QString filename);
     void playLog();

@@ -15,7 +15,7 @@
 #include "parameterview.h"
 #include "emstest.h"
 #include "tableview3d.h"
-
+#include "connectiondialog.h"
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -93,8 +93,11 @@ int main(int argc, char *argv[])
    // param->passConfigBlockList(comm->getMetaParser()->configMetaData());
    // param->passMenuList(comm->getMetaParser()->menuMetaData());
 
-
+    ConnectionDialog *dialog = new ConnectionDialog();
+    dialog->show();
     MainWindow w;
-    w.show();
+    dialog->connect(dialog,&ConnectionDialog::connectionSelected,&w,&MainWindow::connectionSelection);
+    dialog->connect(dialog,&ConnectionDialog::done,&w,&MainWindow::show);
+    //w.show();
     return a.exec();
 }

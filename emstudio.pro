@@ -11,6 +11,7 @@ CONFIG += c++17
 LIBS += -lOpenGL32# -lglut32
 LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
+    src/connectiondialog.cpp \
     src/filedownloader.cpp \
     src/scalarconfigdata.cpp \
     src/bitconfigdata.cpp \
@@ -37,6 +38,7 @@ SOURCES += \
     src/tableviewnew3d.cpp
 
 HEADERS += \
+    src/connectiondialog.h \
     src/filedownloader.h \
     src/scalarconfigdata.h \
     src/bitconfigdata.h \
@@ -79,6 +81,7 @@ HEADERS += \
     src/tableviewnew3d.h
 
 FORMS += \
+    src/connectiondialog.ui \
     src/ui/tableview3d.ui \
     src/ui/comboparam.ui \
     src/ui/mainwindow.ui \

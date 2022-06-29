@@ -1569,7 +1569,7 @@ bool MSPComms::sendSimplePacket(unsigned short payload)
     return false;
 }
 
-void MSPComms::connectSerial(QString port,int baud)
+void MSPComms::connectSerial(bool isserial,QString port,int baud)
 {
     QMutexLocker locker(&reqListMutex);
     RequestClass req;
@@ -1580,6 +1580,8 @@ void MSPComms::connectSerial(QString port,int baud)
 
     m_state = 1;
 
+    if (!isserial)
+    {
     m_connectionType = TCPSOCKET;
 
     m_tcpPort = new QTcpSocket(this);
@@ -1588,6 +1590,9 @@ void MSPComms::connectSerial(QString port,int baud)
     m_tcpPort->waitForConnected();
     serialPortConnected();
     return;
+    }
+    m_connectionType = SERIAL;
+
 
     m_serialPort = new QSerialPort();
 

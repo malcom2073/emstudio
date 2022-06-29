@@ -9,18 +9,25 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "parameterview.h"
+#include "connectiondialog.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
+
+
+
+}
+void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud)
+{
     m_comms = new MSPComms();
     connect(m_comms,&MSPComms::interrogationComplete,this,&MainWindow::interrogationCompleted);
     m_comms->setPort("\\\\.\\COM100");
     m_comms->setBaud(115200);
-    m_comms->connectSerial("\\\\.\\COM100",115200);
+    m_comms->connectSerial(isserial,comorhost,portorbaud);
     m_comms->startInterrogation();
 
 }
-
 MainWindow::~MainWindow()
 {
     delete ui;

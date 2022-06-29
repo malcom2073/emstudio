@@ -143,7 +143,7 @@ void EMSTest::startTest()
     connect(m_comms,&MSPComms::interrogationComplete,this,&EMSTest::interrogationCompleted);
     m_comms->setPort("\\\\.\\COM100");
     m_comms->setBaud(115200);
-    m_comms->connectSerial("\\\\.\\COM100",115200);
+    //m_comms->connectSerial("\\\\.\\COM100",115200);
     m_comms->startInterrogation();
 }
 void EMSTest::interrogationCompleted()
