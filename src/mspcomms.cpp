@@ -1403,7 +1403,14 @@ void MSPComms::sendPacket(RequestClass req)
         //m_serialPort->requestPacket(packet,0);
         //packet = m_serialPort->read(0)
         qDebug() << "Writing page req packet";
-        m_serialPort->write(packet);
+        if (m_connectionType == TCPSOCKET)
+        {
+            m_tcpPort->write(packet);
+        }
+        else
+        {
+            m_serialPort->write(packet);
+        }
         //m_serialPort->writePacket(QString().toLatin1());
     }
     else if (req.type == GET_FIRMWARE_VERSION)
@@ -1423,7 +1430,14 @@ void MSPComms::sendPacket(RequestClass req)
         packet.append(crc >> 0);
         qDebug() << "Writing firmware version packet";
         //m_serialPort->requestPacket(packet,0);
-        m_serialPort->write(packet);
+        if (m_connectionType == TCPSOCKET)
+        {
+            m_tcpPort->write(packet);
+        }
+        else
+        {
+            m_serialPort->write(packet);
+        }
     }
     else if (req.type == UPDATE_BLOCK_IN_FLASH)
     {
@@ -1566,6 +1580,14 @@ void MSPComms::connectSerial(QString port,int baud)
 
     m_state = 1;
 
+    m_connectionType = TCPSOCKET;
+
+    m_tcpPort = new QTcpSocket(this);
+    connect(m_tcpPort,&QTcpSocket::readyRead,this,&MSPComms::handleReadyRead);
+    m_tcpPort->connectToHost("localhost",29001);
+    m_tcpPort->waitForConnected();
+    serialPortConnected();
+    return;
 
     m_serialPort = new QSerialPort();
 
@@ -1646,7 +1668,15 @@ void MSPComms::triggerNextSend()
 
 void MSPComms::handleReadyRead()
 {
-    QByteArray buffer = m_serialPort->read(1000);
+    QByteArray buffer;
+    if (m_connectionType == TCPSOCKET)
+    {
+        buffer = m_tcpPort->read(1000);
+    }
+    else
+    {
+        buffer = m_serialPort->read(1000);
+    }
     m_serialPortBuffer.append(buffer);
     qDebug() << "Incoming data from serial port:" << buffer.size() << "Total:" << m_serialPortBuffer.size();
     bool resend = false;

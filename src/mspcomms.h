@@ -17,6 +17,7 @@
 #include "tsbpheaders.h"
 #include "baseconfigdata.h"
 #include <QVariant>
+#include <QTcpSocket>
 #include "configdata.h"
 #include "rawdata.h"
 #include <QSerialPort>
@@ -56,6 +57,13 @@ public:
         SERIAL_DISCONNECT=0xFFFF02,
         GET_DATA
     };
+    enum ConnectionType
+    {
+        TCPSOCKET,
+        SERIAL,
+        CAN
+    };
+
     class RequestClass
     {
     public:
@@ -155,6 +163,8 @@ private:
     QList<RequestClass> m_privReqList;
     TSBPDataPacketDecoder *m_dataDecoder;
     QString m_portName;
+    ConnectionType m_connectionType;
+    QTcpSocket *m_tcpPort;
     QSerialPort *m_serialPort;
     QByteArray m_serialPortBuffer;
     TSBPMemoryMetaData *m_memoryMetaData;
