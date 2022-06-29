@@ -45,8 +45,11 @@ void MainWindow::interrogationCompleted()
     ui->mdiArea->addSubWindow(param);
     param->passConfigBlockList(m_comms->getMetaParser()->configMetaData());
     param->passMenuList(m_comms->getMetaParser()->menuMetaData());
+    ui->buttonBar->passMenuList(m_comms->getMetaParser()->menuMetaData());
     param->setActiveComms(m_comms);
-    param->show();
+    ui->buttonBar->setActiveComms(m_comms);
+    ui->buttonBar->passMdiArea(ui->mdiArea);
+    //param->show();
 
 }
 void MainWindow::interrogateTaskStart(QString name,int seq)

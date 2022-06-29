@@ -35,6 +35,8 @@ ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
     //scrollArea->show();
     //scrollWidget->show();
     //scrollArea->show();
+    ui.mainVerticalLayout->setContentsMargins(0,0,0,0);
+    ui.mainVerticalLayout->setSpacing(0);
 }
 void ParameterWidget::addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata)
 {
@@ -154,8 +156,8 @@ void ParameterWidget::disableSaveButton()
 }
 void ParameterWidget::addPanel(ParameterWidget *panel,QString dir)
 {
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(panel);
+    //QHBoxLayout *layout = new QHBoxLayout();
+    //layout->addWidget(panel);
     if (dir.isEmpty())
     {
         if (ui.mainHorizontalLayout)
@@ -163,7 +165,8 @@ void ParameterWidget::addPanel(ParameterWidget *panel,QString dir)
             ui.mainHorizontalLayout->deleteLater();
             ui.mainHorizontalLayout = 0;
         }
-        ui.mainVerticalLayout->addLayout(layout);
+        //ui.mainVerticalLayout->addLayout(layout);
+        ui.mainVerticalLayout->addWidget(panel);
     }
     else
     {
@@ -172,7 +175,8 @@ void ParameterWidget::addPanel(ParameterWidget *panel,QString dir)
             ui.mainVerticalLayout->deleteLater();
             ui.mainVerticalLayout = 0;
         }
-        ui.mainHorizontalLayout->addLayout(layout);
+        //ui.mainHorizontalLayout->addLayout(layout);
+        ui.mainHorizontalLayout->addWidget(panel);
     }
     //ui.scrollArea->widget()->layout()->addItem(layout);
     //m_scalarParamList.append(panel);
@@ -195,10 +199,14 @@ void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData*
     param->show();
     param->setName(field.title);
     param->setConfig(data);
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(param);
+    //QHBoxLayout *layout = new QHBoxLayout();
+    //layout->setContentsMargins(0,0,0,0);
+    //layout->setSpacing(0);
+    //layout->addWidget(param);
     //ui.scrollArea->widget()->layout()->addItem(layout);
-    ui.mainVerticalLayout->addItem(layout);
+    //ui.mainVerticalLayout->addItem(layout);
+    ui.mainVerticalLayout->addWidget(param);
+    //param->setspa
     m_scalarParamList.append(param);
 
     /*
@@ -243,10 +251,13 @@ void ParameterWidget::addParam(QString title,DialogField field,BitConfigData* da
     param->show();
     param->setName(field.title);
     param->setConfig(field.variable,data);
-    QHBoxLayout *layout = new QHBoxLayout();
-    layout->addWidget(param);
+    //QHBoxLayout *layout = new QHBoxLayout();
+    //layout->setContentsMargins(0,0,0,0);
+    //layout->setSpacing(0);
+    //layout->addWidget(param);
     //ui.scrollArea->widget()->layout()->addItem(layout);
-    ui.mainVerticalLayout->addItem(layout);
+    //ui.mainVerticalLayout->addItem(layout);
+    ui.mainVerticalLayout->addWidget(param);
     //m_scalarParamList.append(param);
     m_comboParamList.append(param);
 
