@@ -1639,7 +1639,7 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length)
         RequestClass req;
         req.type = RETRIEVE_PAGE;
         req.sequencenumber = currentPacketNum++;
-        emit interrogateTaskStart(QString("Location ID ") + QString(pagereqstring),currentPacketNum-1);
+        emit interrogateTaskStart(QString("Location ID ") + QString(pagereqstring) + ":" + QString::number(i),currentPacketNum-1);
         req.addArg(pagereqstring);
         req.addArg(i);
         req.addArg(((m_pageSizeMap[1] - i >= 256) ? 256 : m_pageSizeMap[1]-i));

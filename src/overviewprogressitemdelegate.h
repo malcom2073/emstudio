@@ -6,30 +6,22 @@
  * as defined in LICENSE.md at the top level of this repository                     *
  ************************************************************************************/
 
-#ifndef MAINWINDOW_H
-#define MAINWINDOW_H
+#ifndef OVERVIEWPROGRESSITEMDELEGATE_H
+#define OVERVIEWPROGRESSITEMDELEGATE_H
 
-#include <QMainWindow>
-#include "mspcomms.h"
-QT_BEGIN_NAMESPACE
-namespace Ui { class MainWindow; }
-QT_END_NAMESPACE
-class InterrogateProgressView;
-class MainWindow : public QMainWindow
+#include <QItemDelegate>
+
+class OverviewProgressItemDelegate : public QItemDelegate
 {
     Q_OBJECT
-
 public:
-    MainWindow(QWidget *parent = nullptr);
-    ~MainWindow();
+    explicit OverviewProgressItemDelegate(QObject *parent = 0);
+protected:
+    void paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const;
+signals:
+
 public slots:
-    void connectionSelection(bool isserial,QString comorhost,int portorbaud);
-private:
-    Ui::MainWindow *ui;
-    MSPComms *m_comms;
-    InterrogateProgressView *progress;
-private slots:
-    void interrogateTaskStart(QString name,int seq);
-    void interrogationCompleted();
+
 };
-#endif // MAINWINDOW_H
+
+#endif // OVERVIEWPROGRESSITEMDELEGATE_H

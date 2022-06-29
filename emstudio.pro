@@ -13,6 +13,9 @@ LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
     src/connectiondialog.cpp \
     src/filedownloader.cpp \
+    src/interrogateprogressview.cpp \
+    src/overviewprogressitemdelegate.cpp \
+    src/parambuttonbar.cpp \
     src/scalarconfigdata.cpp \
     src/bitconfigdata.cpp \
     src/comboparam.cpp \
@@ -40,6 +43,9 @@ SOURCES += \
 HEADERS += \
     src/connectiondialog.h \
     src/filedownloader.h \
+    src/interrogateprogressview.h \
+    src/overviewprogressitemdelegate.h \
+    src/parambuttonbar.h \
     src/scalarconfigdata.h \
     src/bitconfigdata.h \
     src/comboparam.h \
@@ -81,7 +87,9 @@ HEADERS += \
     src/tableviewnew3d.h
 
 FORMS += \
-    src/connectiondialog.ui \
+    src/ui/connectiondialog.ui \
+    src/ui/interrogateprogressview.ui \
+    src/ui/parambuttonbar.ui \
     src/ui/tableview3d.ui \
     src/ui/comboparam.ui \
     src/ui/mainwindow.ui \

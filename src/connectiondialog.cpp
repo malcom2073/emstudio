@@ -11,6 +11,10 @@ ConnectionDialog::ConnectionDialog(QWidget *parent) :
     connect(ui->connectPushButton,&QPushButton::clicked,this,&ConnectionDialog::connectPushButtonClicked);
     connect(ui->serialRadioButton,&QRadioButton::clicked,this,&ConnectionDialog::serialRadioButtonClicked);
     connect(ui->tcpRadioButton,&QRadioButton::clicked,this,&ConnectionDialog::tcpRadioButtonClicked);
+    ui->comLineEdit->setText("COM100");
+    ui->comBaudLineEdit->setText("115200");
+    ui->tcpHostLineEdit->setText("localhost");
+    ui->tcpPortLineEdit->setText("29001");
 }
 
 ConnectionDialog::~ConnectionDialog()
@@ -27,6 +31,7 @@ void ConnectionDialog::connectPushButtonClicked()
     {
         emit connectionSelected(false,ui->tcpHostLineEdit->text(),ui->tcpPortLineEdit->text().toInt());
     }
+    this->hide();
     emit done();
     this->close();
 }
