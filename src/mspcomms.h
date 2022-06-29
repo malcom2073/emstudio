@@ -141,8 +141,9 @@ private:
     void loadIniFile(QFile *inifile);
     bool m_iniFileLoaded;
     FileDownloader m_fileDownloader;
-
-
+private slots:
+    void memorySaveSlot();
+private:
     int requestPage(QByteArray pagereqstring,int length);
     unsigned long currentPacketNum;
     unsigned int currentPacketCount;

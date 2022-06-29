@@ -511,6 +511,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                         {
                             //Scalar
                             ScalarConfigData *data = new ScalarConfigData();
+                            connect(data,&ScalarConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
                             //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
                             data->setOffset(linevalsplit[2].trimmed().toInt());
                             //if (linevalsplit[0].trimmed() == "scalar")
@@ -600,6 +601,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                             else
                             {
                                 data = new BitConfigData();
+                                connect(data,&BitConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
                             }
                             QString bits = linevalsplit[3].trimmed().replace("[","").replace("]","");
                             unsigned int min = bits.split(":")[0].toInt();
@@ -745,6 +747,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                             else
                             {
                                 ArrayConfigData *data = new ArrayConfigData();
+                                connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
                                 data->setCalc(calclist);
                                 data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
                                 data->setName(linesplit[0].trimmed());
@@ -1035,6 +1038,18 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     connect(savePageTimer,SIGNAL(timeout()),this,SLOT(savePageTimerTick()));
 
     connect(&m_fileDownloader,&FileDownloader::fileDownloaded,this,&MSPComms::fileDownloaded);
+
+}
+void MSPComms::memorySaveSlot()
+{
+    //Sender will be a ConfigData.
+    ConfigData *data = qobject_cast<ConfigData*>(sender());
+    if (!data)
+    {
+        qDebug() << "memorySaveSlot called with invalid configdata!!!";
+        return;
+    }
+    qDebug() << "Saving offset:" << data->offset() << "Size:" << data->size() << "Bytes:" << data->getBytes().toHex();
 
 }
 Table* MSPComms::getTableFromName(QString name)

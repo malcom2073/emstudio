@@ -47,7 +47,7 @@ void ComboParam::setConfig(QString variable,BitConfigData *data)
 void ComboParam::saveValue()
 {
 	//m_data->setValue(ui->comboBox->currentIndex());
-	m_data->saveToFlash();
+    m_data->saveToDevice();
 }
 void ComboParam::dataUpdate()
 {

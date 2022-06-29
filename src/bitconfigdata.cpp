@@ -31,15 +31,15 @@ void BitConfigData::setData(QByteArray data)
         {
             buf += (1 << b);
         }
-        unsigned int mydataint = ConfigData::convert(mydata,m_elementSize,false).toUInt();
+        unsigned int mydataint = ConfigData::BytesToValue(mydata,m_elementSize,false).toUInt();
         mydataint &= buf;
         mydataint = mydataint >> i.value().startbit;
         m_valueMap[i.key()] = mydataint;
     }
 }
-void BitConfigData::saveToFlash()
+void BitConfigData::saveToDevice()
 {
-
+    emit saveSignal();
 }
 void BitConfigData::setValue(QVariant value)
 {
@@ -47,7 +47,13 @@ void BitConfigData::setValue(QVariant value)
 }
 QByteArray BitConfigData::getBytes()
 {
-    return QByteArray();
+    QByteArray retval;
+    unsigned int totalval = 0;
+    for (QMap<QString,BitFieldItem>::const_iterator i=m_bitFieldMap.constBegin(); i!=m_bitFieldMap.constEnd();i++)
+    {
+        totalval += (m_valueMap[i.key()].toUInt() << i.value().startbit);
+    }
+    return ValueToBytes(totalval,m_size,false);
 }
 QVariant BitConfigData::getValue(QString name)
 {
@@ -56,8 +62,4 @@ QVariant BitConfigData::getValue(QString name)
 void BitConfigData::setElementSize(unsigned short size)
 {
     m_elementSize = size;
-}
-void BitConfigData::setSize(unsigned short size)
-{
-
 }

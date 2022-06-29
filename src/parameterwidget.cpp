@@ -57,6 +57,10 @@ void ParameterWidget::saveButtonClicked()
     {
         m_comboParamList[i]->saveValue();
     }
+    for (int i=0;i<m_panelList.size();i++)
+    {
+        m_panelList[i]->saveButtonClicked();
+    }
     return;
     for (int i=0;i<m_fieldConfigList.size();i++)
     {
@@ -148,7 +152,7 @@ void ParameterWidget::disableSaveButton()
 {
     ui.savePushButton->setVisible(false);
 }
-void ParameterWidget::addPanel(QWidget *panel,QString dir)
+void ParameterWidget::addPanel(ParameterWidget *panel,QString dir)
 {
     QHBoxLayout *layout = new QHBoxLayout();
     layout->addWidget(panel);
@@ -172,6 +176,7 @@ void ParameterWidget::addPanel(QWidget *panel,QString dir)
     }
     //ui.scrollArea->widget()->layout()->addItem(layout);
     //m_scalarParamList.append(panel);
+    m_panelList.append(panel);
 }
 void ParameterWidget::addParam(QString title,DialogField field,ScalarConfigData* data)
 {

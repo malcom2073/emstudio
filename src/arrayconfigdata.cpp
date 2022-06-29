@@ -119,19 +119,16 @@ QByteArray ArrayConfigData::getBytes()
         return retval;
     }
 }
-void ArrayConfigData::setSize(unsigned short size)
+void ArrayConfigData::saveToDevice()
 {
-    m_size = size;
+    emit saveSignal();
 }
+
 void ArrayConfigData::setValue(int index, QVariant value)
 {
     QVariantList varlist = m_values.toList();
     varlist[index] = value;
     m_values = varlist;
-}
-void ArrayConfigData::saveToFlash()
-{
-
 }
 QVariant ArrayConfigData::getValue(int index)
 {

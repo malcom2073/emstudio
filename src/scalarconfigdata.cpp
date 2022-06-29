@@ -18,19 +18,19 @@ void ScalarConfigData::setData(QByteArray data)
     {
         if (m_elementType == ConfigData::SIGNED_ELEMENT)
         {
-            m_value = calcAxis(ConfigData::convert(newdata,m_elementSize,true).toFloat(),m_calcList);
+            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,true).toFloat(),m_calcList);
         }
         else
         {
-            m_value = calcAxis(ConfigData::convert(newdata,m_elementSize,false).toFloat(),m_calcList);
+            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,false).toFloat(),m_calcList);
         }
         qDebug() << "Value for" << m_name << "offset" << m_offset << "size" << m_elementSize << m_value.toFloat();
     }
 }
 
-void ScalarConfigData::saveToFlash()
+void ScalarConfigData::saveToDevice()
 {
-
+    emit saveSignal();
 }
 
 void ScalarConfigData::setValue(QVariant value)
@@ -40,7 +40,17 @@ void ScalarConfigData::setValue(QVariant value)
 
 QByteArray ScalarConfigData::getBytes()
 {
-    return QByteArray();
+    if (m_elementType == ConfigData::FLOAT_ELEMENT)
+    {
+        float val = m_value.toFloat();
+        QByteArray retval;
+        retval.append(QByteArray::fromRawData(reinterpret_cast<char *>(&val), sizeof(float)));
+        return retval;
+    }
+    else
+    {
+        return ConfigData::ValueToBytes(m_value,m_size,(m_elementType == ConfigData::SIGNED_ELEMENT));
+    }
 }
 
 QVariant ScalarConfigData::getValue()
@@ -54,7 +64,3 @@ void ScalarConfigData::setElementSize(unsigned short size)
     m_elementSize = size;
 }
 
-void ScalarConfigData::setSize(unsigned short size)
-{
-    m_size = size;
-}

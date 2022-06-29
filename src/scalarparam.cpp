@@ -40,7 +40,7 @@ void ScalarParam::dataUpdate()
 void ScalarParam::saveValue()
 {
 	//m_data->setValue(ui->lineEdit->text().toFloat());
-	m_data->saveToFlash();
+    m_data->saveToDevice();
 }
 void ScalarParam::lineEditFinished()
 {

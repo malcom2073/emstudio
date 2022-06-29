@@ -102,12 +102,12 @@ void EMSTest::startTest()
     // Because I hate conversions, let's make sure these work right. Hint: Before I did this, they did not.
     // This won't match what PC calculator will tell you, becaues of byte ordering... but it seems to match the ECU.
     QByteArray shorttest = QByteArray::fromHex("CDABCDAB");
-    assert(ConfigData::convert(shorttest,4,false) == 2882382797);
-    assert(ConfigData::convert(shorttest,4,true)== -1412584499);
-    assert(ConfigData::convert(shorttest.mid(2),2,false) == 43981);
-    assert(ConfigData::convert(shorttest.mid(2),2,true)== -21555);
-    assert(ConfigData::convert(shorttest.mid(3),1,false) == 171);
-    assert(ConfigData::convert(shorttest.mid(3),1,true)== -85);
+    assert(ConfigData::BytesToValue(shorttest,4,false) == 2882382797);
+    assert(ConfigData::BytesToValue(shorttest,4,true)== -1412584499);
+    assert(ConfigData::BytesToValue(shorttest.mid(2),2,false) == 43981);
+    assert(ConfigData::BytesToValue(shorttest.mid(2),2,true)== -21555);
+    assert(ConfigData::BytesToValue(shorttest.mid(3),1,false) == 171);
+    assert(ConfigData::BytesToValue(shorttest.mid(3),1,true)== -85);
 
     m_failure = false;
     int succeedcount = 0;
