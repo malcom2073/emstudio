@@ -33,6 +33,7 @@ private:
 	Ui::ComboParam *ui;
     BitConfigData *m_data;
     QString m_name;
+    QString m_variable;
 };
 
 #endif // COMBOPARAM_H

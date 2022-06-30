@@ -41,15 +41,12 @@ void ScalarConfigData::setValue(QVariant value)
 QByteArray ScalarConfigData::getBytes()
 {
     if (m_elementType == ConfigData::FLOAT_ELEMENT)
-    {
-        float val = m_value.toFloat();
-        QByteArray retval;
-        retval.append(QByteArray::fromRawData(reinterpret_cast<char *>(&val), sizeof(float)));
-        return retval;
+    {   
+        return ConfigData::FloatToBytes(reverseCalcAxis(m_value.toFloat(),m_calcList));
     }
     else
     {
-        return ConfigData::ValueToBytes(m_value,m_size,(m_elementType == ConfigData::SIGNED_ELEMENT));
+        return ConfigData::ValueToBytes(reverseCalcAxis(m_value.toFloat(),m_calcList),m_size,(m_elementType == ConfigData::SIGNED_ELEMENT));
     }
 }
 

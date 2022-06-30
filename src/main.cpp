@@ -81,6 +81,15 @@ int main(int argc, char *argv[])
     assert(ConfigData::BytesToValue(shorttest.mid(3),1,false) == 171);
     assert(ConfigData::BytesToValue(shorttest.mid(3),1,true)== -85);
 
+    assert(ConfigData::ValueToBytes(QVariant(2882382797),4,false) == QByteArray::fromHex("CDABCDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(-1412584499),4,false) == QByteArray::fromHex("CDABCDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(43981),2,false) == QByteArray::fromHex("CDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(-21555),2,true) == QByteArray::fromHex("CDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(171),1,false) == QByteArray::fromHex("AB"));
+    assert(ConfigData::ValueToBytes(QVariant(-85),1,true) == QByteArray::fromHex("AB"));
+
+
+
     QApplication a(argc, argv);
     //TableView3D *view = new TableView3D();
     //view->show();

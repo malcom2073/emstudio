@@ -52,6 +52,7 @@ private:
 private slots:
     void saveButtonClicked();
 signals:
+    void burnData();
     void saveSingleData(unsigned short locationid,QByteArray data, unsigned short offset, unsigned short size);
 public slots:
 

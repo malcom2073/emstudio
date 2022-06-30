@@ -24,6 +24,7 @@ public:
 private slots:
     void actionTriggered();
     void buttonClicked();
+    void burnData();
 private:
     Ui::ParamButtonBar *ui;
     QMdiArea *m_mdiArea;

@@ -164,7 +164,10 @@ void ParameterView::currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem 
         }
     }*/
 }
-
+void ParameterView::burnData()
+{
+    m_emsComms->sendBurn();
+}
 void ParameterView::generateDialog(DialogItem item,QString dir,ParameterWidget *parent)
 {
     //QString title,QList<DialogField> fieldlist
@@ -184,6 +187,7 @@ void ParameterView::generateDialog(DialogItem item,QString dir,ParameterWidget *
     else
     {
         widget = new ParameterWidget();
+        connect(widget,&ParameterWidget::burnData,this,&ParameterView::burnData);
     }
     widget->setWindowTitle(item.title);
     connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));

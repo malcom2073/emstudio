@@ -31,7 +31,7 @@ public:
     void setElementType(ElementType t) { m_elementType = t; }
     ElementType elementType() { return m_elementType; }
     void saveToDevice();
-    void setValue(QVariant value);
+    void setValue(QString name,QVariant value);
     QByteArray getBytes();
     QVariant getValue(QString name);
     void setElementSize(unsigned short size);

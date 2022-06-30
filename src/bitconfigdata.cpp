@@ -23,7 +23,9 @@ void BitConfigData::addBitField(QString name,unsigned char startbit, unsigned ch
 }
 void BitConfigData::setData(QByteArray data)
 {
+
     QByteArray mydata = data.mid(m_offset,m_elementSize);
+    m_origBytes = mydata;
     for (QMap<QString,BitFieldItem>::const_iterator i=m_bitFieldMap.constBegin(); i!=m_bitFieldMap.constEnd();i++)
     {
         unsigned int buf = 0;
@@ -41,9 +43,9 @@ void BitConfigData::saveToDevice()
 {
     emit saveSignal();
 }
-void BitConfigData::setValue(QVariant value)
+void BitConfigData::setValue(QString name,QVariant value)
 {
-
+    m_valueMap[name] = value.toUInt();
 }
 QByteArray BitConfigData::getBytes()
 {
@@ -53,7 +55,9 @@ QByteArray BitConfigData::getBytes()
     {
         totalval += (m_valueMap[i.key()].toUInt() << i.value().startbit);
     }
-    return ValueToBytes(totalval,m_size,false);
+    retval = ValueToBytes(totalval,m_size,false);
+    qDebug() << "BitconfigData::getBytes Orig:" << m_origBytes.toHex() << "New:" << retval.toHex();
+    return retval;
 }
 QVariant BitConfigData::getValue(QString name)
 {

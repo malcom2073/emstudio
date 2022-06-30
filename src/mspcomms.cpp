@@ -602,6 +602,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                             {
                                 data = new BitConfigData();
                                 connect(data,&BitConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
+                                m_bitDataLocationMap.insert(offset,data);
                             }
                             QString bits = linevalsplit[3].trimmed().replace("[","").replace("]","");
                             unsigned int min = bits.split(":")[0].toInt();
@@ -619,38 +620,45 @@ void MSPComms::loadIniFile(QFile *inifile)
                             if (linevalsplit[1].trimmed() == "S08")
                             {
                                 data->setElementSize(1);
+                                data->setSize(1);
                                 data->setElementType(ConfigData::SIGNED_ELEMENT);
 
                             }
                             else if (linevalsplit[1].trimmed() == "S16")
                             {
                                 data->setElementSize(2);
+                                data->setSize(2);
                                 data->setElementType(ConfigData::SIGNED_ELEMENT);
 
                             }
                             else if (linevalsplit[1].trimmed() == "U08")
                             {
                                 data->setElementSize(1);
+                                data->setSize(1);
                                 data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "U16")
                             {
                                 data->setElementSize(2);
+                                data->setSize(2);
                                 data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "U32")
                             {
                                 data->setElementSize(4);
+                                data->setSize(4);
                                 data->setElementType(ConfigData::UNSIGNED_ELEMENT);
                             }
                             else if (linevalsplit[1].trimmed() == "S32")
                             {
                                 data->setElementType(ConfigData::SIGNED_ELEMENT);
                                 data->setElementSize(4);
+                                data->setSize(4);
                             }
                             else if (linevalsplit[1].trimmed() == "F32")
                             {
                                 data->setElementSize(4);
+                                data->setSize(4);
                                 data->setElementType(ConfigData::FLOAT_ELEMENT);
                                 data->setType(ConfigData::FLOAT);
                             }
@@ -1040,6 +1048,16 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     connect(&m_fileDownloader,&FileDownloader::fileDownloaded,this,&MSPComms::fileDownloaded);
 
 }
+int MSPComms::sendBurn()
+{
+//    QMutexLocker locker(&reqListMutex);
+    RequestClass req;
+    req.type = BURN_BLOCK_FROM_RAM_TO_FLASH;
+    req.sequencenumber = currentPacketNum++;
+    m_reqList.append(req);
+    triggerNextSend();
+    return currentPacketNum-1;
+}
 void MSPComms::memorySaveSlot()
 {
     //Sender will be a ConfigData.
@@ -1050,6 +1068,7 @@ void MSPComms::memorySaveSlot()
         return;
     }
     qDebug() << "Saving offset:" << data->offset() << "Size:" << data->size() << "Bytes:" << data->getBytes().toHex();
+    updateBlockInFlash(0,data->offset(),data->size(),data->getBytes());
 
 }
 Table* MSPComms::getTableFromName(QString name)
@@ -1457,8 +1476,8 @@ void MSPComms::sendPacket(RequestClass req)
 
         //m_serialPort->requestPacket(QByteArray("H"),0);
         QByteArray reqdata = "C";
-        reqdata.append(static_cast<char>(0x0));
-        reqdata.append(static_cast<char>(0x0));
+        //reqdata.append(static_cast<char>(0x0));
+        //reqdata.append(static_cast<char>(0x0));
         qDebug() << "Sending update block:" << data.toHex() << offset << size;
         m_currentRequest = req;
         //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
@@ -1481,8 +1500,40 @@ void MSPComms::sendPacket(RequestClass req)
         packet.append(static_cast<char>((crc >> 0) & 0xFF));
         //m_serialPort->requestPacket(packet,0);
         qDebug() << "Writing update block req packet";
-        m_serialPort->write(packet);
+        if (m_connectionType == TCPSOCKET)
+        {
+            m_tcpPort->write(packet);
+        }
+        else
+        {
+            m_serialPort->write(packet);
+        }
 
+
+    }
+    else if (req.type == BURN_BLOCK_FROM_RAM_TO_FLASH)
+    {
+        m_currentRequest = req;
+        QByteArray req = "B";
+        uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
+        QByteArray packet;
+        packet.append((char)0x0);
+        packet.append((char)0x1);
+        packet.append(req);
+        packet.append(crc >> 24);
+        packet.append(crc >> 16);
+        packet.append(crc >> 8);
+        packet.append(crc >> 0);
+        qDebug() << "Writing firmware version packet";
+        //m_serialPort->requestPacket(packet,0);
+        if (m_connectionType == TCPSOCKET)
+        {
+            m_tcpPort->write(packet);
+        }
+        else
+        {
+            m_serialPort->write(packet);
+        }
 
     }
     else if (req.type == GET_DATA)

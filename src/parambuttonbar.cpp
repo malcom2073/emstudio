@@ -60,6 +60,11 @@ void ParamButtonBar::setActiveComms(MSPComms* comms)
 {
     m_emsComms = comms;
 }
+void ParamButtonBar::burnData()
+{
+    m_emsComms->sendBurn();
+}
+
 void ParamButtonBar::actionTriggered()
 {
     QAction* clickedaction = qobject_cast<QAction*>(sender());
@@ -139,7 +144,7 @@ void ParamButtonBar::generateDialog(DialogItem item,QString dir,ParameterWidget 
     else
     {
         widget = new ParameterWidget();
-
+        connect(widget,&ParameterWidget::burnData,this,&ParamButtonBar::burnData);
     }
     widget->setWindowTitle(item.title);
     connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));

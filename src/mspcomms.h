@@ -85,6 +85,7 @@ public:
     TableConfigData *getTableConfigData(QString name);
     ScalarConfigData *getScalarConfigData(QString name);
     BitConfigData *getBitConfigData(QString name);
+    int sendBurn();
 
 
     QString getPluginCompat() { return QString("MEGASQUIRT"); }

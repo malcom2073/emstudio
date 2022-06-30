@@ -55,6 +55,8 @@ signals:
 public slots:
     void currentItemChanged(QTreeWidgetItem *current,QTreeWidgetItem *prev);
     void itemSelectionChanged();
+private slots:
+    void burnData();
 };
 
 #endif // PARAMETERVIEW_H

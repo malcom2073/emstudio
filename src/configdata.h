@@ -31,6 +31,16 @@ public:
         FLOAT_ELEMENT
     };
 
+    static inline QByteArray FloatToBytes(QVariant value)
+    {
+        float val = value.toFloat();
+        return QByteArray::fromRawData(reinterpret_cast<char *>(&val), sizeof(float));
+    }
+    static inline QVariant BytesToFloat(QByteArray value)
+    {
+        float val = *reinterpret_cast<float*>(value.data());
+        return QVariant(val);
+    }
     static inline QByteArray ValueToBytes(QVariant value, int size, bool issigned)
     {
         QByteArray retval;
@@ -158,7 +168,7 @@ public:
     virtual QString name()=0;
     virtual Type type()=0;
     virtual ElementType elementType()=0;
-    inline double calcAxis(float val,QList<QPair<QString,double> > & metadata)
+    inline float calcAxis(float val,QList<QPair<QString,double> > & metadata)
     {
         if (metadata.size() == 0)
         {
@@ -187,7 +197,7 @@ public:
         return newval;
     }
 
-    inline unsigned short reverseCalcAxis(double val,QList<QPair<QString,double> > & metadata)
+    inline float reverseCalcAxis(float val,QList<QPair<QString,double> > & metadata)
     {
         if (metadata.size() == 0)
         {
@@ -213,7 +223,7 @@ public:
             newval *= metadata[j].second;
             }
         }
-        return qRound(newval);
+        return newval;
     }
 protected:
     unsigned int m_offset;

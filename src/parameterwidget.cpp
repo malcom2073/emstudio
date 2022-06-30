@@ -63,6 +63,7 @@ void ParameterWidget::saveButtonClicked()
     {
         m_panelList[i]->saveButtonClicked();
     }
+   emit burnData();
     return;
     for (int i=0;i<m_fieldConfigList.size();i++)
     {
