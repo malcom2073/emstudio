@@ -12,6 +12,7 @@ LIBS += -lOpenGL32# -lglut32
 LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
     src/connectiondialog.cpp \
+    src/consoletextview.cpp \
     src/filedownloader.cpp \
     src/interrogateprogressview.cpp \
     src/overviewprogressitemdelegate.cpp \
@@ -42,6 +43,7 @@ SOURCES += \
 
 HEADERS += \
     src/connectiondialog.h \
+    src/consoletextview.h \
     src/filedownloader.h \
     src/interrogateprogressview.h \
     src/overviewprogressitemdelegate.h \
@@ -87,6 +89,7 @@ HEADERS += \
     src/tableviewnew3d.h
 
 FORMS += \
+    src/consoletextview.ui \
     src/ui/connectiondialog.ui \
     src/ui/interrogateprogressview.ui \
     src/ui/parambuttonbar.ui \

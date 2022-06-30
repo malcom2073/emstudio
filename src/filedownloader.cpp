@@ -2,27 +2,42 @@
 #include <QTemporaryFile>
 #include <QDebug>
 #include <QSslSocket>
+#include <QStandardPaths>
+#include <QDir>
 FileDownloader::FileDownloader()
 {
     qDebug() << QSslSocket::sslLibraryBuildVersionString();
     qDebug() << QSslSocket::supportsSsl();
     qDebug() << QSslSocket::sslLibraryVersionString();
+    QDir dir(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
+    dir.mkpath(QStandardPaths::writableLocation(QStandardPaths::CacheLocation));
 
     connect(&m_networkAccessManager, SIGNAL (finished(QNetworkReply*)),this, SLOT (replyReady(QNetworkReply*)));
 }
 void FileDownloader::replyReady(QNetworkReply* reply)
 {
-    qDebug() << "File Downloaded!";
-    QTemporaryFile *tempfile = new QTemporaryFile();
-    tempfile->open();
+    QStringList strsplit = m_destPath.split("/");
+    QString rawfilename = strsplit[strsplit.length()-1];
+    qDebug() << "File Downloaded!" <<QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename;
+    QFile *tempfile = new QFile(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename);
+    tempfile->open(QIODevice::ReadWrite);
     tempfile->write(reply->readAll());
     tempfile->close();
     emit fileDownloaded(tempfile);
 }
 void FileDownloader::downloadFile(QString url,QString destpath)
 {
+    m_destPath = url;
     qDebug() << "Downloading:" << url;
+    QStringList strsplit = url.split("/");
+    QString rawfilename = strsplit[strsplit.length()-1];
+    if (QFile::exists(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename))
+    {
+        QFile *file = new QFile(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename);
+        emit fileDownloaded(file);
+        return;
+    }
     QNetworkRequest request(url);
     m_networkAccessManager.get(request);
-    m_destPath = destpath;
+    //m_destPath = destpath;
 }

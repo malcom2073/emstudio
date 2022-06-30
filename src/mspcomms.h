@@ -55,7 +55,8 @@ public:
         GET_LOCATION_ID_INFO=0xF8E0,
         SERIAL_CONNECT=0xFFFF01,
         SERIAL_DISCONNECT=0xFFFF02,
-        GET_DATA
+        GET_DATA,
+        GET_CONSOLE
     };
     enum ConnectionType
     {
@@ -86,7 +87,8 @@ public:
     ScalarConfigData *getScalarConfigData(QString name);
     BitConfigData *getBitConfigData(QString name);
     int sendBurn();
-
+    QByteArray m_dataReqBuffer;
+    void getDataReq();
 
     QString getPluginCompat() { return QString("MEGASQUIRT"); }
     void stop();
@@ -152,6 +154,8 @@ private:
     FileDownloader m_fileDownloader;
 private slots:
     void memorySaveSlot();
+    void getConsoleTextTimerTimeout();
+
 private:
     int requestPage(QByteArray pagereqstring,int length);
     unsigned long currentPacketNum;
@@ -196,6 +200,8 @@ private:
     int m_state;
     bool m_waitingForPacketResponse;
 signals:
+    void consoleText(QString text);
+
     void packetSent(unsigned short locationid,QByteArray header,QByteArray payload);
     void packetAcked(unsigned short locationid,QByteArray header,QByteArray payload);
     void packetNaked(unsigned short locationid,QByteArray header,QByteArray payload,unsigned short errornum);

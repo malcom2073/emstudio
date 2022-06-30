@@ -1040,6 +1040,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     QTimer *timer = new QTimer();
     connect(timer,SIGNAL(timeout()),this,SLOT(packetCounter()));
     timer->start(10000);
+
     m_threadRun = true;
     m_waitingForPacketResponse = false;
     savePageTimer = new QTimer(this);
@@ -1070,6 +1071,15 @@ void MSPComms::memorySaveSlot()
     qDebug() << "Saving offset:" << data->offset() << "Size:" << data->size() << "Bytes:" << data->getBytes().toHex();
     updateBlockInFlash(0,data->offset(),data->size(),data->getBytes());
 
+}
+void MSPComms::getConsoleTextTimerTimeout()
+{
+    RequestClass req;
+    req.type = GET_CONSOLE;
+    req.sequencenumber = currentPacketNum++;
+    m_reqList.append(req);
+    triggerNextSend();
+    //sendPacket(req);
 }
 Table* MSPComms::getTableFromName(QString name)
 {
@@ -1541,23 +1551,61 @@ void MSPComms::sendPacket(RequestClass req)
         //qDebug() << "Getting data frame";
         m_currentRequest = req;
         //m_serialPort->requestPacket(QByteArray("H"),0);
-        QByteArray req = "O";
-        req.append((char)0x0);
-        req.append((char)0x0);
-        req.append(240);
-        req.append((char)0x0);
+        QByteArray reqbytes = "O";
+        int offset = req.args.at(0).toInt(); //Size
+        int size = req.args.at(1).toInt(); //Size
+        //QByteArray data = req.args.at(3).toByteArray();
+        //qDebug() << "Sending update block:" << data.toHex() << offset << size;
+        m_currentRequest = req;
+        //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
+        //m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
+        reqbytes.append(static_cast<char>(offset & 0xFF));
+        reqbytes.append(static_cast<char>((offset >> 8) & 0xFF));
+        reqbytes.append(static_cast<char>(size & 0xFF));
+        reqbytes.append(static_cast<char>((size >> 8) & 0xFF));
+
+        //req.append((char)0x0);
+        //req.append((char)0x0);
+        //req.append((char)0xF4);
+        //req.append((char)0x1);
+        uint32_t crc = Crc32_ComputeBuf(0,reqbytes.data(),reqbytes.size());
+        QByteArray packet;
+        packet.append((char)0x00);
+        packet.append(reqbytes.length());
+        packet.append(reqbytes);
+        packet.append(crc >> 24);
+        packet.append(crc >> 16);
+        packet.append(crc >> 8);
+        packet.append(crc >> 0);
+        //qDebug() << "Writing get data packet";
+        //m_serialPort->requestPacket(packet,0);
+        m_serialPort->write(packet);
+    }
+    else if (req.type == GET_CONSOLE)
+    {
+        m_currentRequest = req;
+        //m_serialPort->requestPacket(QByteArray("H"),0);
+        QByteArray req = "G";
+        //req.append((char)0x0);
+        //req.append((char)0x0);
+        //req.append((char)0xF4);
+        //req.append((char)0x1);
         uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
         QByteArray packet;
         packet.append((char)0x00);
-        packet.append(0x05);
+        packet.append(0x01);
         packet.append(req);
         packet.append(crc >> 24);
         packet.append(crc >> 16);
         packet.append(crc >> 8);
         packet.append(crc >> 0);
-        qDebug() << "Writing get data packet";
+        //qDebug() << "Writing get data packet";
         //m_serialPort->requestPacket(packet,0);
         m_serialPort->write(packet);
+    }
+    else
+    {
+        qDebug() << "Unknown request type!";
     }
 }
 
@@ -1700,6 +1748,31 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length)
     triggerNextSend();
     return currentPacketNum-1;
 }
+void MSPComms::getDataReq()
+{
+    RequestClass req;
+    req.type = GET_DATA;
+    req.addArg(0);
+    req.addArg(341);
+    req.sequencenumber = currentPacketNum++;
+    m_reqList.append(req);
+
+    RequestClass req2;
+    req2.type = GET_DATA;
+    req2.addArg(341);
+    req2.addArg(341);
+    req2.sequencenumber = currentPacketNum++;
+    m_reqList.append(req2);
+
+    //RequestClass req3;
+    //req3.type = GET_DATA;
+    //req3.addArg(682);
+    //req3.addArg(341);
+    //req3.sequencenumber = currentPacketNum++;
+    //m_reqList.append(req3);
+    triggerNextSend();
+
+}
 void MSPComms::triggerNextSend()
 {
     if (!m_waitingForPacketResponse)
@@ -1713,12 +1786,13 @@ void MSPComms::triggerNextSend()
         }
         else
         {
+            getDataReq();
             //No requests, create a datalog request
-            //RequestClass req;
-            //req.type = GET_DATA;
-            //req.sequencenumber = currentPacketNum++;
-            //sendPacket(req);
         }
+    }
+    else
+    {
+        qDebug() << "triggerNextSend while we have a message in waiting: " << m_currentRequest.type;
     }
 }
 
@@ -1727,31 +1801,32 @@ void MSPComms::handleReadyRead()
     QByteArray buffer;
     if (m_connectionType == TCPSOCKET)
     {
-        buffer = m_tcpPort->read(1000);
+        buffer = m_tcpPort->readAll();
     }
     else
     {
-        buffer = m_serialPort->read(1000);
+
+        buffer = m_serialPort->readAll();
     }
     m_serialPortBuffer.append(buffer);
-    qDebug() << "Incoming data from serial port:" << buffer.size() << "Total:" << m_serialPortBuffer.size();
+    //qDebug() << "Incoming data from serial port:" << buffer.size() << "Total:" << m_serialPortBuffer.size();
     bool resend = false;
     while (true)
     {
         if (m_serialPortBuffer.length() < 3)
         {
             //Not enough data to process
-            qDebug() << "Leftover data in buffer: " << m_serialPortBuffer.length();
+            //qDebug() << "Leftover data in buffer: " << m_serialPortBuffer.length();
             break;
         }
         int bufsize = ((static_cast<unsigned int>(m_serialPortBuffer[0]) & 0xFF) << 8) + (static_cast<unsigned int>(m_serialPortBuffer[1]) & 0xFF);
         if (m_serialPortBuffer.length() < (bufsize+6))
         {
             //not enough data to process a full packet
-            qDebug() << "Packet size reads: " << bufsize+6 << "But we've only got" << m_serialPortBuffer.length();
+            //qDebug() << "Packet size reads: " << bufsize+6 << "But we've only got" << m_serialPortBuffer.length();
             break;
         }
-        qDebug() << "Packet size reads: " << bufsize << "and we've only got" << m_serialPortBuffer.length();
+        //qDebug() << "Packet size reads: " << bufsize << "and we've only got" << m_serialPortBuffer.length();
         //bufsize is the actual payload size. It doens't include the size or CRC, but it does include the flag it seems?
         QByteArray packettoparse = m_serialPortBuffer.mid(0,bufsize+6);
         //m_serialPortBuffer = m_serialPortBuffer.remove(0,bufsize);
@@ -1801,7 +1876,10 @@ void MSPComms::parseBuffer(QByteArray data)
         qDebug() << "Packet error: " << packettoparse[0];
         return;
     }*/
-    qDebug() << "Packet error:" << (unsigned int)data[2];
+    if ((unsigned int)data[2] != 0)
+    {
+        qDebug() << "Packet error:" << (unsigned int)data[2];
+    }
     data = data.mid(3,data.length()-7);
     if (m_waitingForPacketResponse == true)
     {
@@ -1824,8 +1902,23 @@ void MSPComms::parseBuffer(QByteArray data)
         {
             QByteArray realtimedata = data;
             //qDebug() << "Data:" << realtimedata;
-            emit dataLogPayloadReceived(realtimedata,QByteArray());
+            int offset = m_currentRequest.args.at(0).toInt(); //Size
+            int size = m_currentRequest.args.at(1).toInt(); //Size
+            m_dataReqBuffer.append(realtimedata);
+            if (offset > 700 )
+            {
+                emit dataLogPayloadReceived(m_dataReqBuffer,QByteArray());
+                m_dataReqBuffer = QByteArray();
+            }
             currentPacketCount++;
+        }
+        else if (m_currentRequest.type == GET_CONSOLE)
+        {
+
+            QByteArray realtimedata = data;
+            //qDebug() << "Data:" << realtimedata;
+            emit consoleText(realtimedata);
+
         }
         else if (m_currentRequest.type == UPDATE_BLOCK_IN_FLASH)
         {
@@ -1879,7 +1972,9 @@ void MSPComms::parseBuffer(QByteArray data)
                 {
                     i.value()->setData(m_pageBufferMap[0]);
                 }
-
+                QTimer *timer = new QTimer();
+                connect(timer,SIGNAL(timeout()),this,SLOT(getConsoleTextTimerTimeout()));
+                timer->start(1000);
 
                 emit interrogationComplete();
             }

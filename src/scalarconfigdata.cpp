@@ -24,7 +24,7 @@ void ScalarConfigData::setData(QByteArray data)
         {
             m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,false).toFloat(),m_calcList);
         }
-        qDebug() << "Value for" << m_name << "offset" << m_offset << "size" << m_elementSize << m_value.toFloat();
+        //qDebug() << "Value for" << m_name << "offset" << m_offset << "size" << m_elementSize << m_value.toFloat();
     }
 }
 

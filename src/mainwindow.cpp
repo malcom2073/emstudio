@@ -11,6 +11,7 @@
 #include "parameterview.h"
 #include "connectiondialog.h"
 #include "interrogateprogressview.h"
+#include "consoletextview.h"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -49,6 +50,11 @@ void MainWindow::interrogationCompleted()
     param->setActiveComms(m_comms);
     ui->buttonBar->setActiveComms(m_comms);
     ui->buttonBar->passMdiArea(ui->mdiArea);
+
+    ConsoleTextView *console = new ConsoleTextView();
+    ui->mdiArea->addSubWindow(console);
+    connect(m_comms,&MSPComms::consoleText,console,&ConsoleTextView::consoleText);
+    console->show();
     //param->show();
 
 }

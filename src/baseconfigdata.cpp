@@ -22,7 +22,7 @@ void TSBPConfigData::setData(QByteArray data)
         quint32 temp = ((char)newdata[3] << 24)|((char)newdata[2] << 16)|((char)newdata[1] << 8)|(char)newdata[0]; // Big endian
         //float* out = reinterpret_cast<float*>(&temp);
         float* out = reinterpret_cast<float*>(newdata.data());
-        qDebug() << "Value for" << m_name << *out << "offset" << m_offset << "size" << m_elementSize;
+        //qDebug() << "Value for" << m_name << *out << "offset" << m_offset << "size" << m_elementSize;
         //m_value = QVariant(calcAxis(out,m_calc));
         m_value = QVariant(calcAxis(*out,m_calc));
     }
@@ -40,7 +40,7 @@ void TSBPConfigData::setData(QByteArray data)
         {
             val += ((unsigned char)newdata[i]) << (((m_elementSize-1) - i) * 8);
         }
-        qDebug() << "Value for" << m_name << val << "offset" << m_offset << "size" << m_elementSize;
+        //qDebug() << "Value for" << m_name << val << "offset" << m_offset << "size" << m_elementSize;
         m_value = QVariant(calcAxis(val,m_calc));
     }
     else if (m_type == ENUM)
