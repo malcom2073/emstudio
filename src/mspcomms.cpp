@@ -911,11 +911,21 @@ void MSPComms::loadIniFile(QFile *inifile)
                     }
                     else if (linesplit[0].trimmed() == "xBins")
                     {
-                        curveMap[currentcurvevar]->xbin = linesplit[1].trimmed();
+                        QString xbin = linesplit[1].trimmed();
+                        if (xbin.contains(","))
+                        {
+                            xbin = xbin.split(",")[0].trimmed();
+                        }
+                        curveMap[currentcurvevar]->xbin = xbin;
                     }
                     else if (linesplit[0].trimmed() == "yBins")
                     {
-                        curveMap[currentcurvevar]->ybin = linesplit[1].trimmed();
+                        QString ybin = linesplit[1].trimmed();
+                        if (ybin.contains(","))
+                        {
+                            ybin = ybin.split(",")[0].trimmed();
+                        }
+                        curveMap[currentcurvevar]->ybin = ybin;
                     }
                     else if (linesplit[0].trimmed() == "columnLabel")
                     {
@@ -1792,7 +1802,7 @@ void MSPComms::triggerNextSend()
     }
     else
     {
-        qDebug() << "triggerNextSend while we have a message in waiting: " << m_currentRequest.type;
+        //qDebug() << "triggerNextSend while we have a message in waiting: " << m_currentRequest.type;
     }
 }
 

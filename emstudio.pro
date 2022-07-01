@@ -33,8 +33,11 @@ SOURCES += \
     src/scalarparam.cpp \
     src/tableconfigdata.cpp \
     src/tablemap3d.cpp \
+    src/tableview2d.cpp \
     src/tableview3d.cpp \
     src/baseconfigdata.cpp \
+    src/tablewidget.cpp \
+    src/tablewidgetdelegate.cpp \
     src/tsbpdatapacketdecoder.cpp \
     src/tsbpmemorymetadata.cpp \
     src/tsbptable2ddata.cpp \
@@ -79,8 +82,11 @@ HEADERS += \
     src/tableconfigdata.h \
     src/tabledata.h \
     src/tablemap3d.h \
+    src/tableview2d.h \
     src/tableview3d.h \
     src/baseconfigdata.h \
+    src/tablewidget.h \
+    src/tablewidgetdelegate.h \
     src/tsbpdatapacketdecoder.h \
     src/tsbpheaders.h \
     src/tsbpmemorymetadata.h \
@@ -90,6 +96,7 @@ HEADERS += \
 
 FORMS += \
     src/consoletextview.ui \
+    src/tableview2d.ui \
     src/ui/connectiondialog.ui \
     src/ui/interrogateprogressview.ui \
     src/ui/parambuttonbar.ui \

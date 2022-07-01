@@ -35,6 +35,7 @@ public:
     void addParam(QString title,DialogField field,ScalarConfigData* data);
     void addParam(QString title,DialogField field,BitConfigData* data);
     void addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata);
+    void addCurve(ArrayConfigData *xdata,ArrayConfigData *ydata);
     void addPanel(ParameterWidget *panel,QString dir);
     void disableSaveButton();
 private:

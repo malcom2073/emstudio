@@ -17,6 +17,7 @@
 #include "arrayconfigdata.h"
 #include "tableconfigdata.h"
 #include "tableview3d.h"
+#include "tableview2d.h"
 ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
 {
     ui.setupUi(this);
@@ -37,6 +38,16 @@ ParameterWidget::ParameterWidget(QWidget *parent) : QWidget(parent)
     //scrollArea->show();
     ui.mainVerticalLayout->setContentsMargins(0,0,0,0);
     ui.mainVerticalLayout->setSpacing(0);
+}
+void ParameterWidget::addCurve(ArrayConfigData *xdata,ArrayConfigData *ydata)
+{
+    TableView2D *curve = new TableView2D(this);
+    curve->setData("Lambda",xdata,ydata);
+    curve->show();
+    QHBoxLayout *layout = new QHBoxLayout();
+    layout->addWidget(curve);
+    //ui.scrollArea->widget()->layout()->addItem(layout);
+    ui.mainVerticalLayout->addItem(layout);
 }
 void ParameterWidget::addTable(ArrayConfigData *xdata,ArrayConfigData *ydata, TableConfigData *zdata)
 {

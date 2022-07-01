@@ -3,6 +3,7 @@
 #include <QPushButton>
 #include <QMenu>
 #include <QMdiSubWindow>
+#include "tableview2d.h"
 ParamButtonBar::ParamButtonBar(QWidget *parent) :
     QWidget(parent),
     ui(new Ui::ParamButtonBar)
@@ -95,7 +96,7 @@ void ParamButtonBar::actionTriggered()
             if (table)
             {
                 ParameterWidget *widget = new ParameterWidget();
-                connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
+                //connect(widget,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
                 //widget->show();
                 //paramWidgetList.append(widget);
                 ArrayConfigData *xdata = m_emsComms->getArrayConfigData(table->xbin);
@@ -113,7 +114,23 @@ void ParamButtonBar::actionTriggered()
             }
             else
             {
-
+                Curve* curve = m_emsComms->getCurveFromName(variablename);
+                if (curve)
+                {
+                    ParameterWidget *widget = new ParameterWidget();
+                    widget->setWindowTitle(curve->title);
+                    ArrayConfigData *xdata = m_emsComms->getArrayConfigData(curve->xbin);
+                    ArrayConfigData *ydata = m_emsComms->getArrayConfigData(curve->ybin);
+                    if (xdata && ydata)
+                    {
+                        widget->addCurve(xdata,ydata);
+                    }
+                    QMdiSubWindow *sub = new QMdiSubWindow(this->m_mdiArea);
+                    sub->setWidget(widget);
+                    sub->setAttribute(Qt::WA_DeleteOnClose,true);
+                    sub->show();
+                    m_mdiArea->addSubWindow(sub);
+                }
             }
             //No dialog found, show the raw data type.
         }
@@ -197,6 +214,20 @@ void ParamButtonBar::generateDialog(DialogItem item,QString dir,ParameterWidget 
             if (xdata && ydata && zdata)
             {
                 widget->addTable(xdata,ydata,zdata);
+            }
+        }
+        else
+        {
+            Curve* curve = m_emsComms->getCurveFromName(item.panelList[i].second);
+            if (curve)
+            {
+                widget->setWindowTitle(curve->title);
+                ArrayConfigData *xdata = m_emsComms->getArrayConfigData(curve->xbin);
+                ArrayConfigData *ydata = m_emsComms->getArrayConfigData(curve->ybin);
+                if (xdata && ydata)
+                {
+                    widget->addCurve(xdata,ydata);
+                }
             }
         }
     }
