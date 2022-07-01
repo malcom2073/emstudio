@@ -1,0 +1,40 @@
+name: C/C++ CI
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs:
+  build:
+
+    runs-on: windows-latest
+
+    steps:
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: 6.2.0
+        arch: win64_msvc2019_64
+        modules: qt3d qtserialport
+    - uses: ilammy/msvc-dev-cmd@v1.4.1
+    - uses: actions/checkout@v3
+    - name: qmake 
+      run: qmake -spec win32-msvc
+    - name: make
+      run: nmake
+    - name: ready-deploy
+      run: |
+          mkdir release/deploy
+    - name: copy-files
+      run: |
+          cp release/emstudio.exe release/deploy/
+    - name: qt-deploy
+      run: |
+          windeployqt release/deploy
+    - name: Archive code coverage results
+      uses: actions/upload-artifact@v3
+      with:
+        name: binary-release
+        path: release/deploy
