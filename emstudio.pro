@@ -107,7 +107,7 @@ FORMS += \
     src/ui/parameterwidget.ui \
     src/ui/scalarparam.ui \
     src/ui/tableviewnew3d.ui
-OTHER_FILES += LICENSE.md README.md
+OTHER_FILES += LICENSE.md README.md .github/workflows/win-build.yml
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin

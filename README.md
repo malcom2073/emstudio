@@ -4,11 +4,13 @@ Written by Michael Carpenter (malcom2073@gmail.com), and licensed under MIT.
 
 ### Overview:
 
-EMStudio is an open source tuning application for engines.
+EMStudio is an open source tuning application for engines. It currently supports RusEFI, however it may be compatible with other ms.ini style systems.
 
 ### Binaries:
 
-Binaries are not currently maintained. A build server is in progress and will hopefully be up and running again soon.
+[![Windows](https://github.com/malcom2073/emstudio/actions/workflows/win-build.yml/badge.svg?branch=master)](https://github.com/malcom2073/emstudio/actions/workflows/win-build.yml)
+
+Windows binaries are available in the github release section, OSX/Ubuntu/Fedora are TODO.
 
 ### Compiling:
 
