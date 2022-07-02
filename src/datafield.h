@@ -13,7 +13,7 @@ class DataField
 {
 public:
     DataField();
-    DataField(QString shortname,QString description,int offset,int size,double div,double addoffset=0,double min=0,double max=0,bool isFlags=false,int bit=0);
+    DataField(QString shortname,QString description,int offset,int size,double div,double addoffset=0,double min=0,double max=0,bool issigned=false,bool isfloat=false,bool isFlags=false,int bit=0);
     float getValue(QByteArray *payload,bool translatebeforescale = false);
     QString description() { return m_description; }
     QString name() { return m_name; }
@@ -25,6 +25,8 @@ private:
     QString m_name;
     QString m_description;
     bool m_isFlags;
+    bool m_isSigned;
+    bool m_isFloat;
     int m_bit;
     int m_offset;
     int m_size;

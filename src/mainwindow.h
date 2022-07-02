@@ -11,6 +11,7 @@
 
 #include <QMainWindow>
 #include "mspcomms.h"
+#include "dashboard.h"
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -22,6 +23,7 @@ class MainWindow : public QMainWindow
 public:
     MainWindow(QWidget *parent = nullptr);
     ~MainWindow();
+    Dashboard *m_dashboard;
 public slots:
     void connectionSelection(bool isserial,QString comorhost,int portorbaud,QString inifile);
 private:
@@ -31,5 +33,6 @@ private:
 private slots:
     void interrogateTaskStart(QString name,int seq);
     void interrogationCompleted();
+    void dataLogPayloadDecoded(QVariantMap data);
 };
 #endif // MAINWINDOW_H

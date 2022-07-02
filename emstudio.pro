@@ -1,6 +1,8 @@
 QT       += core gui opengl network
 QT += serialport
-QT += openglwidgets
+QT += openglwidgets qml quick
+QT += quickwidgets
+#QT += quick qml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
@@ -13,7 +15,9 @@ LIBS += -lglu32 #-lglut -lGLU32
 SOURCES += \
     src/connectiondialog.cpp \
     src/consoletextview.cpp \
+    src/dashboard.cpp \
     src/filedownloader.cpp \
+    src/gaugeitem.cpp \
     src/interrogateprogressview.cpp \
     src/overviewprogressitemdelegate.cpp \
     src/parambuttonbar.cpp \
@@ -47,7 +51,9 @@ SOURCES += \
 HEADERS += \
     src/connectiondialog.h \
     src/consoletextview.h \
+    src/dashboard.h \
     src/filedownloader.h \
+    src/gaugeitem.h \
     src/interrogateprogressview.h \
     src/overviewprogressitemdelegate.h \
     src/parambuttonbar.h \
@@ -112,3 +118,6 @@ OTHER_FILES += LICENSE.md README.md .github/workflows/win-build.yml
 qnx: target.path = /tmp/$${TARGET}/bin
 else: unix:!android: target.path = /opt/$${TARGET}/bin
 !isEmpty(target.path): INSTALLS += target
+
+DISTFILES += \
+    default_dashboard.qml

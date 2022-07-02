@@ -15,7 +15,10 @@
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-
+    m_dashboard = new Dashboard();
+    m_dashboard->setFile("default_dashboard.qml");
+    ui->mdiArea->addSubWindow(m_dashboard);
+    m_dashboard->show();
 
 
 }
@@ -33,6 +36,7 @@ void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorb
     connect(m_comms,&MSPComms::interrogateTaskStart,this,&MainWindow::interrogateTaskStart);
     connect(m_comms,&MSPComms::interrogateTaskSucceed,progress,&InterrogateProgressView::taskSucceed);
     connect(m_comms,&MSPComms::interrogateTaskFail,progress,&InterrogateProgressView::taskFail);
+    connect(m_comms,&MSPComms::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
 
 }
 MainWindow::~MainWindow()
@@ -55,6 +59,9 @@ void MainWindow::interrogationCompleted()
     ui->mdiArea->addSubWindow(console);
     connect(m_comms,&MSPComms::consoleText,console,&ConsoleTextView::consoleText);
     console->show();
+
+
+
     //param->show();
 
 }
@@ -69,4 +76,14 @@ void MainWindow::interrogateTaskStart(QString name,int seq)
         progress->addTask(name,seq,1);
     }
 
+}
+void MainWindow::dataLogPayloadDecoded(QVariantMap data)
+{
+    QVariantMap::const_iterator i = data.constBegin();
+    while (i != data.constEnd())
+    {
+            m_dashboard->propertyMap.setProperty(i.key().toLatin1(),i.value());
+        //ui.tableWidget->item(m_nameToIndexMap[i.key()],1)->setText(QString::number(i.value()));
+        i++;
+    }
 }

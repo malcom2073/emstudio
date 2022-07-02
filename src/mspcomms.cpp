@@ -531,6 +531,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                     if (linevalsplit[0].trimmed() == "scalar")
                     {
                         scalarclass scalar;
+                        bool isfloat = false;
                         //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
                         scalar.offset = linevalsplit[2].trimmed().toInt();
                         if (linevalsplit[4].trimmed().startsWith("."))
@@ -581,9 +582,15 @@ void MSPComms::loadIniFile(QFile *inifile)
                             scalar.size = 4;
                             scalar.signedval = true;
                         }
+                        else if (linevalsplit[1].trimmed() == "F32")
+                        {
+                            scalar.size = 4;
+                            scalar.signedval = true;
+                            isfloat = true;
+                        }
                         scalar.unit = linevalsplit[3].trimmed().mid(1,linevalsplit[3].trimmed().length()-2);
                         //dataLogList.append(scalar);
-                        DataField f(linesplit[0].trimmed(),"",scalar.offset,scalar.size,scalar.scale,scalar.translate);
+                        DataField f(linesplit[0].trimmed(),"",scalar.offset,scalar.size,scalar.scale,scalar.translate,0,0,scalar.signedval,isfloat);
                         dataLogMap.append(f);
                         //dataLogMap[linesplit[0].trimmed()] = scalar;
                     }
@@ -1826,12 +1833,12 @@ void MSPComms::getDataReq()
     req2.sequencenumber = currentPacketNum++;
     m_reqList.append(req2);
 
-    //RequestClass req3;
-    //req3.type = GET_DATA;
-    //req3.addArg(682);
-    //req3.addArg(341);
-    //req3.sequencenumber = currentPacketNum++;
-    //m_reqList.append(req3);
+    RequestClass req3;
+    req3.type = GET_DATA;
+    req3.addArg(675);
+    req3.addArg(334);
+    req3.sequencenumber = currentPacketNum++;
+    m_reqList.append(req3);
     triggerNextSend();
 
 }
@@ -1985,9 +1992,10 @@ void MSPComms::parseBuffer(QByteArray data)
             int offset = m_currentRequest.args.at(0).toInt(); //Size
             int size = m_currentRequest.args.at(1).toInt(); //Size
             m_dataReqBuffer.append(realtimedata);
-            if (offset > 700 )
+            if (offset > 674 )
             {
-                emit dataLogPayloadReceived(m_dataReqBuffer,QByteArray());
+                //emit dataLogPayloadReceived(m_dataReqBuffer,QByteArray());
+                emit dataLogPayloadReceived(m_dataReqBuffer);
                 m_dataReqBuffer = QByteArray();
             }
             currentPacketCount++;
