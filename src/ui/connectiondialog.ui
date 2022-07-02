@@ -128,15 +128,56 @@
   <widget class="QPushButton" name="connectPushButton">
    <property name="geometry">
     <rect>
-     <x>260</x>
-     <y>190</y>
-     <width>75</width>
-     <height>24</height>
+     <x>360</x>
+     <y>170</y>
+     <width>121</width>
+     <height>41</height>
     </rect>
    </property>
    <property name="text">
     <string>Connect</string>
    </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>140</y>
+     <width>271</width>
+     <height>81</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>INI File</string>
+   </property>
+   <layout class="QHBoxLayout" name="horizontalLayout_3">
+    <item>
+     <widget class="QLineEdit" name="iniPathLineEdit">
+      <property name="toolTip">
+       <string/>
+      </property>
+      <property name="statusTip">
+       <string/>
+      </property>
+      <property name="whatsThis">
+       <string/>
+      </property>
+      <property name="inputMask">
+       <string/>
+      </property>
+      <property name="text">
+       <string>Automatic Download</string>
+      </property>
+     </widget>
+    </item>
+    <item>
+     <widget class="QPushButton" name="iniBrowsePushButton">
+      <property name="text">
+       <string>Browse Local File</string>
+      </property>
+     </widget>
+    </item>
+   </layout>
   </widget>
  </widget>
  <resources/>

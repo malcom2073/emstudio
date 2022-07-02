@@ -17,6 +17,7 @@
 #include "tsbptable2ddata.h"
 #include <QTimer>
 #include <QFile>
+#include <QMessageBox>
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -1728,9 +1729,10 @@ bool MSPComms::sendSimplePacket(unsigned short payload)
     return false;
 }
 
-void MSPComms::connectSerial(bool isserial,QString port,int baud)
+void MSPComms::connectSerial(bool isserial,QString port,int baud,QString inifile)
 {
-    QMutexLocker locker(&reqListMutex);
+    m_iniFile = inifile;
+//    QMutexLocker locker(&reqListMutex);
     RequestClass req;
     req.type = SERIAL_CONNECT;
     req.addArg(port);
@@ -1951,10 +1953,28 @@ void MSPComms::parseBuffer(QByteArray data)
             //"rusEFI 2022.06.25.all.2759818183\u0000
             QStringList versionstrlist = versionstr.mid(0,versionstr.length()-1).replace("\"","").split(" ");
             QString path = "https://rusefi.com/online/ini/rusefi/" + versionstrlist[1].replace(".","/") + ".ini";
-            if (!m_iniFileLoaded)
+            if (m_iniFile != "" && !m_iniFileLoaded)
+            {
+                QStringList inifilesplit = m_iniFile.split("/");
+                QStringList versionsplit = versionstrlist[1].split("/");
+                QString filename = inifilesplit[inifilesplit.length()-1];
+                if (filename.trimmed() != (versionsplit[versionsplit.length()-1] + ".ini"))
+                {
+                    if (QMessageBox::question(0,"Wrong INI File","INI File provided is " + filename + " however firmware needs " + versionsplit[versionsplit.length()-1] + ".ini. Would you like to automatically download the appropraite file?") == QMessageBox::Yes)
+                    {
+                        m_fileDownloader.downloadFile(path,"");
+                    }
+                }
+                else
+                {
+                    QFile *file = new QFile(m_iniFile);
+                    loadIniFile(file);
+                    delete file;
+                }
+            }
+            else if (!m_iniFileLoaded)
             {
                 m_fileDownloader.downloadFile(path,"");
-                //loadIniFile("inifilehere.ini");
             }
 
         }

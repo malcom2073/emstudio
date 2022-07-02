@@ -16,6 +16,7 @@
 #include "emstest.h"
 #include "tableview3d.h"
 #include "connectiondialog.h"
+#include "tableview2d.h"
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -73,58 +74,12 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
 
 int main(int argc, char *argv[])
 {
-    QByteArray shorttest = QByteArray::fromHex("CDABCDAB");
-    assert(ConfigData::BytesToValue(shorttest,4,false) == 2882382797);
-    assert(ConfigData::BytesToValue(shorttest,4,true)== -1412584499);
-    assert(ConfigData::BytesToValue(shorttest.mid(2),2,false) == 43981);
-    assert(ConfigData::BytesToValue(shorttest.mid(2),2,true)== -21555);
-    assert(ConfigData::BytesToValue(shorttest.mid(3),1,false) == 171);
-    assert(ConfigData::BytesToValue(shorttest.mid(3),1,true)== -85);
-
-    assert(ConfigData::ValueToBytes(QVariant(2882382797),4,false) == QByteArray::fromHex("CDABCDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(-1412584499),4,false) == QByteArray::fromHex("CDABCDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(43981),2,false) == QByteArray::fromHex("CDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(-21555),2,true) == QByteArray::fromHex("CDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(171),1,false) == QByteArray::fromHex("AB"));
-    assert(ConfigData::ValueToBytes(QVariant(-85),1,true) == QByteArray::fromHex("AB"));
-
 
 
     QApplication a(argc, argv);
-    //TableView3D *view = new TableView3D();
-    //view->show();
-    //EMSTest *test = new EMSTest();
-    //test->startTest();
-   // ParameterView *param = new ParameterView();
-   // param->setActiveComms(comm);
-    //param->show();
-
-   // param->passConfigBlockList(comm->getMetaParser()->configMetaData());
-   // param->passMenuList(comm->getMetaParser()->menuMetaData());
-
-    /*QByteArray veLoadBins = QByteArray::fromHex("0a0014001e00280032003c00460050005a0064006e00780082008c009600a000");
-    QByteArray veRpmBins = QByteArray::fromHex("8a0220034c047805a406d007fc08280a540b800cac0dd80e041030115c12581b");
-    QByteArray veTable = QByteArray::fromHex("2003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003200320032003");
-    QString veTableLine = "veTable = array, U16, 18932, [16x16], \"%\", 0.1, 0, 0, 999, 1";
-    QString veLoadBinsLine = "veLoadBins = array, U16, 19444, [16], \"kPa\", 1, 0, 0, 400, 0";
-    QString veRpmBinsLine = "veRpmBins = array, U16, 19476, [16], \"RPM\", 1, 0, 0, 18000, 0";
-
-    MSPComms *comms = new MSPComms();
-    ArrayConfigData *veLoadBinsACD = comms->arrayConfigFromIniLine("veLoadBins",veLoadBinsLine.split("=")[1].split(","));
-    veLoadBinsACD->setOffset(0);
-    ArrayConfigData *veRpmBinsACD = comms->arrayConfigFromIniLine("veRpmBins",veRpmBinsLine.split("=")[1].split(","));
-    veRpmBinsACD->setOffset(0);
-    TableConfigData *veTableTCD = comms->tableConfigFromIniLine("veTable",veTableLine.split("=")[1].split(","));
-    veTableTCD->setOffset(0);
-
-    veLoadBinsACD->setData(veLoadBins);
-    veRpmBinsACD->setData(veRpmBins);
-    veTableTCD->setData(veTable);
-    TableView3D *tableview = new TableView3D();
-    tableview->setData("ve Table",veLoadBinsACD,veRpmBinsACD,veTableTCD);
-    tableview->show();*/
 
     ConnectionDialog *dialog = new ConnectionDialog();
+    dialog->setWindowTitle("EMStudio Connect");
     dialog->show();
     MainWindow w;
     dialog->connect(dialog,&ConnectionDialog::connectionSelected,&w,&MainWindow::connectionSelection);

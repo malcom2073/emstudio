@@ -120,7 +120,7 @@ public:
     int hardReset();
     QMap<int,int> m_pageSizeMap;
     bool sendSimplePacket(unsigned short payload);
-    void connectSerial(bool isserial,QString port,int baud);
+    void connectSerial(bool isserial,QString port,int baud,QString inifile);
     void disconnectSerial();
     void loadLog(QString filename);
     void playLog();
@@ -144,6 +144,9 @@ public:
     void acceptLocalChanges() { };
     void rejectLocalChanges() { };
 private:
+    QString m_iniFile;
+
+
     QMap<QString,TableConfigData*> m_tableDataMap;
     QMap<QString,ArrayConfigData*> m_arrayDataMap;
     QMap<QString,ScalarConfigData*> m_scalarDataMap;

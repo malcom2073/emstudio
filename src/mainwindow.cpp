@@ -19,7 +19,7 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
 
 
 }
-void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud)
+void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud,QString inifile)
 {
     progress = new InterrogateProgressView();
     ui->mdiArea->addSubWindow(progress);
@@ -28,7 +28,7 @@ void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorb
     connect(m_comms,&MSPComms::interrogationComplete,this,&MainWindow::interrogationCompleted);
     m_comms->setPort("\\\\.\\COM100");
     m_comms->setBaud(115200);
-    m_comms->connectSerial(isserial,comorhost,portorbaud);
+    m_comms->connectSerial(isserial,comorhost,portorbaud,inifile);
     m_comms->startInterrogation();
     connect(m_comms,&MSPComms::interrogateTaskStart,this,&MainWindow::interrogateTaskStart);
     connect(m_comms,&MSPComms::interrogateTaskSucceed,progress,&InterrogateProgressView::taskSucceed);
