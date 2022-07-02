@@ -168,6 +168,8 @@ public:
     virtual QString name()=0;
     virtual Type type()=0;
     virtual ElementType elementType()=0;
+    void setDisplayDecimals(int decimals) { m_decimals = decimals; }
+    unsigned int displayDecimals() { return m_decimals; }
     inline float calcAxis(float val,QList<QPair<QString,double> > & metadata)
     {
         if (metadata.size() == 0)
@@ -228,6 +230,7 @@ public:
 protected:
     unsigned int m_offset;
     unsigned int m_size;
+    unsigned int m_decimals;
 
 signals:
     void update(); // Called whenever the data has been changed and UI needs to update

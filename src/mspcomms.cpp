@@ -137,6 +137,7 @@ TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linev
     data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
     data->setOffset(offset);
     data->setElementSize(elementsize);
+    data->setDisplayDecimals(linevalsplit[9].toInt());
     if (isfloat)
     {
         data->setElementType(ConfigData::FLOAT_ELEMENT);
@@ -219,6 +220,7 @@ ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linev
     data->setType(ConfigData::ARRAY);
     data->setOffset(offset);
     data->setElementSize(elementsize);
+    data->setDisplayDecimals(linevalsplit[9].toInt());
     if (isfloat)
     {
         data->setElementType(ConfigData::FLOAT_ELEMENT);

@@ -35,6 +35,7 @@ public:
     void setCalc(QList<QPair<QString,double> >list) {m_calcList = list;}
     QByteArray getOrig() { return m_origBytes; }
 
+
 private:
     QList<QPair<QString,double> > m_calcList;
     QByteArray m_origBytes;

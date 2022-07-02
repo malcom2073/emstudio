@@ -619,7 +619,7 @@ void TableView3D::setRange(QList<QPair<QPair<int,int>,double> > data)
             tmpvaluemap[data[i].first.first] = QMap<int,QString>();
         }
         tmpvaluemap[data[i].first.first][data[i].first.second] = ui.tableWidget->item(data[i].first.first,data[i].first.second);
-        QString formatstr = formatNumber(data[i].second,2);
+        QString formatstr = formatNumber(data[i].second,m_zAxis->displayDecimals());
         //QString verifystr = verifyValue(data[i].first.first,data[i].first.second,formatstr);
         //if (verifystr != "GOOD")
         //{
@@ -1046,7 +1046,7 @@ bool TableView3D::updateTable()
         {
             xmax = val;
         }
-        ui.tableWidget->setXAxis(x,QString::number(val));
+        ui.tableWidget->setXAxis(x,QString::number(val,'f',m_xAxis->displayDecimals()));
     }
     double ymin=0;
     double ymax=0;
@@ -1061,7 +1061,7 @@ bool TableView3D::updateTable()
         {
             ymax = val;
         }
-        ui.tableWidget->setYAxis((m_yAxis->size()-1)-y,QString::number(val));
+        ui.tableWidget->setYAxis((m_yAxis->size()-1)-y,QString::number(val,'f',m_yAxis->displayDecimals()));
     }
     //m_valueMax = tableData->values()[0][0];
     double zmin=0;
@@ -1080,7 +1080,7 @@ bool TableView3D::updateTable()
             {
                 zmax = val;
             }
-            ui.tableWidget->setItem((m_zAxis->xSize()-1)-row,col,QString::number(val));
+            ui.tableWidget->setItem((m_zAxis->xSize()-1)-row,col,QString::number(val,'f',m_zAxis->displayDecimals()));
         }
     }
     ui.tableWidget->setMaxValues(xmax,ymax,zmax);
