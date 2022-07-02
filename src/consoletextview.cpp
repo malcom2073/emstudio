@@ -33,6 +33,7 @@ void ConsoleTextView::consoleText(QString text)
         }
         else
         {
+            ui->textBrowser->append(formattedTime + " " + textsplit[i] + ":" + textsplit[i+1]);
             qDebug() << "Message not handled" << textsplit[i] << textsplit[i+1];
         }
     }
