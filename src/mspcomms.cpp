@@ -70,7 +70,174 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
     }
     return( crc32 ^ 0xFFFFFFFF );
 }
+TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linevalsplit)
+{
+    QString format = linevalsplit[3].trimmed();
+    unsigned int offset = linevalsplit[2].trimmed().toInt();
+    QList<QPair<QString,double> > calclist;
+    if (linevalsplit[5].trimmed().startsWith("."))
+    {
+        calclist.append(QPair<QString,double>("mult",QString("0").append(linevalsplit[5].trimmed()).toFloat()));
+    }
+    else
+    {
+        calclist.append(QPair<QString,double>("mult",linevalsplit[5].trimmed().toFloat()));
+    }
+    if (linevalsplit[6].trimmed().startsWith("."))
+    {
+        calclist.append(QPair<QString,double>("add",QString("0").append(linevalsplit[6].trimmed()).toFloat()));
+    }
+    else
+    {
+        calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
+    }
+    unsigned short elementsize = 0;
+    bool issigned = false;
+    bool isfloat = false;
+    if (linevalsplit[1].trimmed() == "S16")
+    {
+        elementsize = 2;
+        issigned = true;
+    }
+    else if (linevalsplit[1].trimmed() == "U08")
+    {
+        elementsize = 1;
+        issigned = false;
+    }
+    else if (linevalsplit[1].trimmed() == "U16")
+    {
+        elementsize=2;
+        issigned=false;
+    }
+    else if (linevalsplit[1].trimmed() == "U32")
+    {
+        elementsize=4;
+        issigned=false;
+    }
+    else if (linevalsplit[1].trimmed() == "S32")
+    {
+        elementsize=4;
+        issigned=true;
+    }
+    else if (linevalsplit[1].trimmed() == "F32")
+    {
+        elementsize=4;
+        issigned=true;
+        isfloat=true;
+    }
 
+    TableConfigData *data = new TableConfigData();
+    connect(data,&TableConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
+    data->setType(ConfigData::ARRAY);
+    //It's a 3d array.
+    data->setCalc(calclist);
+    //data->setLocationId(pagenumint);
+    data->setXSize(format.mid(1,format.size()-2).split("x")[0].toInt());
+    data->setName(name);
+    data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
+    data->setOffset(offset);
+    data->setElementSize(elementsize);
+    if (isfloat)
+    {
+        data->setElementType(ConfigData::FLOAT_ELEMENT);
+    }
+    else if (issigned)
+    {
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
+    }
+    else
+    {
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+    }
+    return data;
+
+
+
+}
+ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linevalsplit)
+{
+    unsigned int offset = linevalsplit[2].trimmed().toInt();
+    QString format = linevalsplit[3].trimmed();
+    QList<QPair<QString,double> > calclist;
+    if (linevalsplit[5].trimmed().startsWith("."))
+    {
+        calclist.append(QPair<QString,double>("mult",QString("0").append(linevalsplit[5].trimmed()).toFloat()));
+    }
+    else
+    {
+        calclist.append(QPair<QString,double>("mult",linevalsplit[5].trimmed().toFloat()));
+    }
+    if (linevalsplit[6].trimmed().startsWith("."))
+    {
+        calclist.append(QPair<QString,double>("add",QString("0").append(linevalsplit[6].trimmed()).toFloat()));
+    }
+    else
+    {
+        calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
+    }
+    unsigned short elementsize = 0;
+    bool issigned = false;
+    bool isfloat = false;
+    if (linevalsplit[1].trimmed() == "S16")
+    {
+        elementsize = 2;
+        issigned = true;
+    }
+    else if (linevalsplit[1].trimmed() == "U08")
+    {
+        elementsize = 1;
+        issigned = false;
+    }
+    else if (linevalsplit[1].trimmed() == "U16")
+    {
+        elementsize=2;
+        issigned=false;
+    }
+    else if (linevalsplit[1].trimmed() == "U32")
+    {
+        elementsize=4;
+        issigned=false;
+    }
+    else if (linevalsplit[1].trimmed() == "S32")
+    {
+        elementsize=4;
+        issigned=true;
+    }
+    else if (linevalsplit[1].trimmed() == "F32")
+    {
+        elementsize=4;
+        issigned=true;
+        isfloat=true;
+    }
+
+    ArrayConfigData *data = new ArrayConfigData();
+    connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
+    data->setCalc(calclist);
+    data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
+    data->setName(name);
+            //data->setLocationId(pagenumint);
+    data->setType(ConfigData::ARRAY);
+    data->setOffset(offset);
+    data->setElementSize(elementsize);
+    if (isfloat)
+    {
+        data->setElementType(ConfigData::FLOAT_ELEMENT);
+    }
+    else if (issigned)
+    {
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
+    }
+    else
+    {
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
+    }
+
+    data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
+    return data;
+    //data->setAxisMetaData(elementsize,array.scale,array.translate,issigned);
+    //m_2dTableData[linesplit[0].trimmed()] = data;
+    //m_arrayDataMap.insert(linesplit[0].trimmed(),data);
+}
 void MSPComms::loadIniFile(QFile *inifile)
 {
     inifile->open(QIODevice::ReadOnly);
@@ -671,134 +838,15 @@ void MSPComms::loadIniFile(QFile *inifile)
                         else if (linevalsplit[0].trimmed() == "array")
                         {
                             QString format = linevalsplit[3].trimmed();
-                            unsigned int offset = linevalsplit[2].trimmed().toInt();
-                            QList<QPair<QString,double> > calclist;
-                            if (linevalsplit[5].trimmed().startsWith("."))
-                            {
-                                calclist.append(QPair<QString,double>("mult",QString("0").append(linevalsplit[5].trimmed()).toFloat()));
-                            }
-                            else
-                            {
-                                calclist.append(QPair<QString,double>("mult",linevalsplit[5].trimmed().toFloat()));
-                            }
-                            if (linevalsplit[6].trimmed().startsWith("."))
-                            {
-                                calclist.append(QPair<QString,double>("add",QString("0").append(linevalsplit[6].trimmed()).toFloat()));
-                            }
-                            else
-                            {
-                                calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
-                            }
-                            unsigned short elementsize = 0;
-                            bool issigned = false;
-                            bool isfloat = false;
-                            if (linevalsplit[1].trimmed() == "S16")
-                            {
-                                elementsize = 2;
-                                issigned = true;
-                            }
-                            else if (linevalsplit[1].trimmed() == "U08")
-                            {
-                                elementsize = 1;
-                                issigned = false;
-                            }
-                            else if (linevalsplit[1].trimmed() == "U16")
-                            {
-                                elementsize=2;
-                                issigned=false;
-                            }
-                            else if (linevalsplit[1].trimmed() == "U32")
-                            {
-                                elementsize=4;
-                                issigned=false;
-                            }
-                            else if (linevalsplit[1].trimmed() == "S32")
-                            {
-                                elementsize=4;
-                                issigned=true;
-                            }
-                            else if (linevalsplit[1].trimmed() == "F32")
-                            {
-                                elementsize=4;
-                                issigned=true;
-                                isfloat=true;
-                            }
-
                             if (format.contains("x"))
                             {
-                                TableConfigData *data = new TableConfigData();
-                                data->setType(ConfigData::ARRAY);
-                                //It's a 3d array.
-                                data->setCalc(calclist);
-                                //data->setLocationId(pagenumint);
-                                data->setXSize(format.mid(1,format.size()-2).split("x")[0].toInt());
-                                data->setName(linesplit[0].trimmed());
-                                data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
-                                data->setOffset(offset);
-                                data->setElementSize(elementsize);
-                                if (isfloat)
-                                {
-                                    data->setElementType(ConfigData::FLOAT_ELEMENT);
-                                }
-                                else if (issigned)
-                                {
-                                    data->setElementType(ConfigData::SIGNED_ELEMENT);
-                                }
-                                else
-                                {
-                                    data->setElementType(ConfigData::UNSIGNED_ELEMENT);
-                                }
-
-                                m_tableDataMap.insert(linesplit[0].trimmed(),data);
-
+                                m_tableDataMap.insert(linesplit[0].trimmed(),tableConfigFromIniLine(linesplit[0].trimmed(),linevalsplit));
                             }
                             else
                             {
-                                ArrayConfigData *data = new ArrayConfigData();
-                                connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
-                                data->setCalc(calclist);
-                                data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
-                                data->setName(linesplit[0].trimmed());
-                                //data->setLocationId(pagenumint);
-                                data->setType(ConfigData::ARRAY);
-                                data->setOffset(offset);
-                                data->setElementSize(elementsize);
-                                if (isfloat)
-                                {
-                                    data->setElementType(ConfigData::FLOAT_ELEMENT);
-                                }
-                                else if (issigned)
-                                {
-                                    data->setElementType(ConfigData::SIGNED_ELEMENT);
-                                }
-                                else
-                                {
-                                    data->setElementType(ConfigData::UNSIGNED_ELEMENT);
-                                }
-
-                                data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
-                                //data->setAxisMetaData(elementsize,array.scale,array.translate,issigned);
-                                //m_2dTableData[linesplit[0].trimmed()] = data;
-                                m_arrayDataMap.insert(linesplit[0].trimmed(),data);
+                                m_arrayDataMap.insert(linesplit[0].trimmed(),arrayConfigFromIniLine(linesplit[0].trimmed(),linevalsplit));
                             }
-                            //TableConfigData or ArrayConfigData
-
-                            //7,8 min,max
-                            /*if (linesplit.size() > 8)
-                            {
-                                array.min = linesplit[7].trimmed().toFloat();
-                                array.max = linesplit[8].trimmed().toFloat();
-                            }
-                            else
-                            {
-                                array.min = -65535;
-                                array.max = 65535;
-                            }*/
-
-                            //arrayMap[linesplit[0].trimmed()] = array;
-                            //m_configDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
-                            //pageArrayMap[pagenum][linesplit[0].trimmed()] = array;
                         }
                     }
                 }
@@ -1080,7 +1128,7 @@ void MSPComms::memorySaveSlot()
     }
     qDebug() << "Saving offset:" << data->offset() << "Size:" << data->size() << "Bytes:" << data->getBytes().toHex();
     updateBlockInFlash(0,data->offset(),data->size(),data->getBytes());
-
+    sendBurn();
 }
 void MSPComms::getConsoleTextTimerTimeout()
 {
@@ -2142,7 +2190,7 @@ int MSPComms::updateBlockInRam(unsigned short location,unsigned short offset, un
 
 int MSPComms::updateBlockInFlash(unsigned short location,unsigned short offset, unsigned short size,QByteArray data)
 {
-    QMutexLocker locker(&reqListMutex);
+    //QMutexLocker locker(&reqListMutex);
     if (data.size() > 255)
     {
         for (int i=0;i<data.size();i+=255)

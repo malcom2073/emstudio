@@ -619,16 +619,20 @@ void TableView3D::setRange(QList<QPair<QPair<int,int>,double> > data)
             tmpvaluemap[data[i].first.first] = QMap<int,QString>();
         }
         tmpvaluemap[data[i].first.first][data[i].first.second] = ui.tableWidget->item(data[i].first.first,data[i].first.second);
-        QString formatstr = formatNumber(data[i].second,m_metaData.zDp);
-        QString verifystr = verifyValue(data[i].first.first,data[i].first.second,formatstr);
-        if (verifystr != "GOOD")
-        {
-            invalidreasons.append(verifystr);
-            valid = false;
-        }
+        QString formatstr = formatNumber(data[i].second,2);
+        //QString verifystr = verifyValue(data[i].first.first,data[i].first.second,formatstr);
+        //if (verifystr != "GOOD")
+        //{
+        //    invalidreasons.append(verifystr);
+        //    valid = false;
+        //}
         ui.tableWidget->setItem(data[i].first.first,data[i].first.second,formatstr);
+        m_zAxis->setValue((m_zAxis->xSize()-1) - data[i].first.first,data[i].first.second,data[i].second);
     }
     //Write the values, and re-enable the signals.
+
+    saveClicked();
+    return;
     if (valid)
     {
         writeTable(true);
@@ -1199,7 +1203,13 @@ void TableView3D::setSilentValue(int row,int column,QString value)
 void TableView3D::saveClicked()
 {
     //emit saveToFlash(m_locationId);
-    tableData->saveRamToFlash();
+    //tableData->saveRamToFlash();
+    //qDebug() << "X" << m_xAxis->getBytes().toHex();
+    //qDebug() << "Y" << m_yAxis->getBytes().toHex();
+    //qDebug() << "Z" << m_zAxis->getBytes().toHex();
+    m_xAxis->saveToDevice();
+    m_yAxis->saveToDevice();
+    m_zAxis->saveToDevice();
 }
 TableView3D::~TableView3D()
 {

@@ -20,6 +20,7 @@ void ArrayConfigData::setData(QByteArray data)
         //Error, data is not value for this config.
         return;
     }
+    qDebug() << m_name << data.mid(m_offset,m_elementSize * m_size).toHex();
     m_values.clear();
     for (int i=m_offset;i<(m_offset + (m_elementSize * m_size));i+=m_elementSize)
     {
@@ -112,7 +113,7 @@ QByteArray ArrayConfigData::getBytes()
                 }
                 for (int k=0;k<m_elementSize;k++)
                 {
-                    retval.append(((qRound(val)) >> (((m_elementSize-1) - k) * 8)) & 0xFF);
+                    retval.append(((qRound(val)) >> (k * 8)) & 0xFF);
                 }
             }
         }

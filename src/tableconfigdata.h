@@ -13,6 +13,7 @@
 
 class TableConfigData : public ConfigData
 {
+    Q_OBJECT
 public:
     void setData(QByteArray data);
     QString name() { return m_name; }
@@ -24,13 +25,13 @@ public:
     void setElementType(ElementType t) { m_elementType = t; }
     void setOffset(unsigned int offset) { m_offset = offset; }
     ElementType elementType() { return m_elementType; }
-    void saveToFlash();
+    void saveToDevice();
     void setValue(unsigned int x,unsigned int y, QVariant value);
     QByteArray getBytes();
     QVariant getValue(unsigned int x, unsigned int y);
     void setElementSize(unsigned short size);
-    void setXSize(unsigned short size) { m_xSize = size; }
-    void setYSize(unsigned short size) { m_ySize = size; }
+    void setXSize(unsigned short size) { m_xSize = size; m_size = m_xSize*m_ySize; }
+    void setYSize(unsigned short size) { m_ySize = size; m_size = m_xSize*m_ySize; }
     void setCalc(QList<QPair<QString,double> >list) {m_calcList = list;}
     QByteArray getOrig() { return m_origBytes; }
 
@@ -38,13 +39,14 @@ private:
     QList<QPair<QString,double> > m_calcList;
     QByteArray m_origBytes;
     QString m_name;
-    unsigned int m_offset;
     unsigned short m_elementSize;
     unsigned int m_xSize;
     unsigned int m_ySize;
     ElementType m_elementType;
     Type m_type;
     QList<QVariantList> m_values;
+signals:
+     void saveSignal();
 };
 
 #endif // TABLECONFIGDATA_H

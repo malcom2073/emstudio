@@ -89,6 +89,8 @@ public:
     int sendBurn();
     QByteArray m_dataReqBuffer;
     void getDataReq();
+    ArrayConfigData *arrayConfigFromIniLine(QString name,QStringList linevalsplit);
+    TableConfigData *tableConfigFromIniLine(QString name,QStringList linevalsplit);
 
     QString getPluginCompat() { return QString("MEGASQUIRT"); }
     void stop();

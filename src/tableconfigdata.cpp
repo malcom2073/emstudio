@@ -10,6 +10,7 @@ void TableConfigData::setData(QByteArray data)
     m_origBytes = data.mid(m_offset,(m_elementSize * m_xSize * m_ySize));
     QVariantList newvals;
     QVariantList m_axis;
+    qDebug() << m_name << m_origBytes.toHex();
     for (unsigned int i=m_offset;i<(m_offset + (m_elementSize * m_xSize * m_ySize));i+=m_elementSize)
     {
         double val = 0;
@@ -64,13 +65,13 @@ void TableConfigData::setData(QByteArray data)
     }
     m_values.append(newvals);
 }
-void TableConfigData::saveToFlash()
+void TableConfigData::saveToDevice()
 {
-
+    emit saveSignal();
 }
 void TableConfigData::setValue(unsigned int x,unsigned int y, QVariant value)
 {
-
+    m_values[x][y] = value;
 }
 QByteArray TableConfigData::getBytes()
 {
@@ -82,17 +83,14 @@ QByteArray TableConfigData::getBytes()
             if (m_elementType == ConfigData::FLOAT_ELEMENT)
             {
                 float floatval = m_values.at(x).at(y).toFloat();
-                retval.append(QByteArray::fromRawData(reinterpret_cast<char *>(&floatval), sizeof(float)));
+                floatval = ConfigData::reverseCalcAxis(floatval,m_calcList);
+                retval.append(ConfigData::FloatToBytes(floatval));
             }
             else
             {
                 float floatval = m_values.at(x).at(y).toFloat();
-                //newval -= m_valueTranslate;
-                //newval /= m_valueScale;
-                for (int k=0;k<m_elementSize;k++)
-                {
-                    retval.append(((qRound(floatval)) >> (((m_elementSize-1) - k) * 8)) & 0xFF);
-                }
+                floatval = ConfigData::reverseCalcAxis(floatval,m_calcList);
+                retval.append(ConfigData::ValueToBytes(floatval,m_elementSize,m_elementType == ConfigData::SIGNED_ELEMENT));
             }
         }
     }
