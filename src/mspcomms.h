@@ -74,6 +74,7 @@ public:
         int ochBlockSize;
         int blockingFactor;
     };
+    QString m_firmwareVersion;
     class PageInfoStruct
     {
     public:

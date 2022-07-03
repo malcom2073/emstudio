@@ -1531,24 +1531,9 @@ void MSPComms::startInterrogation()
 {
     if (!m_interrogateInProgress)
     {
-        if (m_iniFile != "" && !m_iniFileLoaded)
-        {
-            QFile *file = new QFile(m_iniFile);
-            loadIniFile(file);
-            delete file;
-        }
         //m_interrogatePacketList.clear();
         m_interrogateInProgress = true;
         interrogateTaskStart("Ecu Info",getFirmwareVersion());
-        for (int i=0;i<m_pageInfoList.size();i++)
-        {
-            interrogateTaskStart("Location ID " + QString::number(i),requestPage(m_pageInfoList[i].pageReadCommand.toLatin1(),m_pageInfoList[i].pageSize,i));
-        }
-        for (int i=0;i<m_pageReqStringList.size();i++)
-        {
-            qDebug() << "Requesting page:" << i << m_pageReqStringList.at(i) << m_pageSizeList.at(i);
-        }
-
         QByteArray pagereq;
         pagereq.append("R");
         //pagereq.append((char)0x0); // CANID
@@ -1688,7 +1673,8 @@ void MSPComms::sendPacket(RequestClass req)
         qDebug() << "Getting firmware version";
         m_currentRequest = req;
         //m_serialPort->requestPacket(QByteArray("H"),0);
-        QByteArray req = m_commandStructure.queryCommand.toLatin1();
+        //QByteArray req = m_commandStructure.queryCommand.toLatin1();
+        QByteArray req = QByteArray("S"); // Hardcoded since it's in the spec PDF
         uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
         QByteArray packet;
         packet.append((char)0x0);
@@ -1791,7 +1777,7 @@ void MSPComms::sendPacket(RequestClass req)
     }
     else if (req.type == GET_DATA)
     {
-        //qDebug() << "Getting data frame";
+
         m_currentRequest = req;
         //m_serialPort->requestPacket(QByteArray("H"),0);
 
@@ -1804,6 +1790,19 @@ void MSPComms::sendPacket(RequestClass req)
         //qDebug() << "Sending update block:" << data.toHex() << offset << size;
         //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
         //m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
+
+        /*if (m_bigEndian)
+        {
+            offset.append((char)((i >> 8) & 0xFF));
+            offset.append((char)i & 0xFF);
+        }
+        else
+        {
+            offset.append((char)i & 0xFF);
+            offset.append((char)((i >> 8) & 0xFF));
+        }*/
+
+
         QByteArray offsetbytes;
         offsetbytes.append(static_cast<char>(offset & 0xFF));
         offsetbytes.append(static_cast<char>((offset >> 8) & 0xFF));
@@ -1811,6 +1810,7 @@ void MSPComms::sendPacket(RequestClass req)
         sizebytes.append(static_cast<char>(size & 0xFF));
         sizebytes.append(static_cast<char>((size >> 8) & 0xFF));
         reqbytes = reqbytes.replace("%2o",offsetbytes).replace("%2c",sizebytes);
+        //qDebug() << "O:" << offset << "S:" << size;
         }
         m_currentRequest = req;
 
@@ -1829,6 +1829,7 @@ void MSPComms::sendPacket(RequestClass req)
         packet.append(crc >> 0);
         //qDebug() << "Writing get data packet";
         //m_serialPort->requestPacket(packet,0);
+        //qDebug() << "Getting data frame" << packet.toHex();
         m_serialPort->write(packet);
     }
     else if (req.type == GET_CONSOLE)
@@ -2069,7 +2070,7 @@ void MSPComms::getDataReq()
         RequestClass req;
         req.type = GET_DATA;
         req.addArg(i);
-        req.addArg(((m_commandStructure.blockingFactor-i >= m_commandStructure.ochBlockSize) ? m_commandStructure.ochBlockSize : m_commandStructure.blockingFactor-i ));
+        req.addArg(((m_commandStructure.ochBlockSize-i >= m_commandStructure.blockingFactor) ? m_commandStructure.blockingFactor : m_commandStructure.ochBlockSize-i ));
         req.sequencenumber = currentPacketNum++;
         m_reqList.append(req);
 
@@ -2144,6 +2145,8 @@ void MSPComms::handleReadyRead()
         if (((unsigned char)packettoparse[2]) == 0x83)
         {
             qDebug() << "unrecognized command, resend command";
+            qDebug() << "Type:" << m_currentRequest.type;
+            qDebug() << "Args:" << m_currentRequest.args;
             //sendPacket(m_currentRequest);
             //resend = true;
             continue;
@@ -2163,6 +2166,7 @@ void MSPComms::fileDownloaded(QFile *file)
 {
     loadIniFile(file);
     delete file; // Have to do this here, noone else owns the pointer.
+    startInterrogation();
 
 }
 void MSPComms::parseBuffer(QByteArray data)
@@ -2192,6 +2196,7 @@ void MSPComms::parseBuffer(QByteArray data)
             emit interrogateTaskSucceed(m_currentRequest.sequencenumber);
             qDebug() << "Got firmware version:" << versionstr;
             //"rusEFI 2022.06.25.all.2759818183\u0000
+            m_firmwareVersion = versionstr;
             if (versionstr.contains("rusEFI"))
             {
                 QStringList versionstrlist = versionstr.mid(0,versionstr.length()-1).replace("\"","").split(" ");
@@ -2205,6 +2210,7 @@ void MSPComms::parseBuffer(QByteArray data)
                     {
                         if (QMessageBox::question(0,"Wrong INI File","INI File provided is " + filename + " however firmware needs " + versionsplit[versionsplit.length()-1] + ".ini. Would you like to automatically download the appropraite file?") == QMessageBox::Yes)
                         {
+                            m_interrogateInProgress = false;
                             m_fileDownloader.downloadFile(path,"");
                         }
                     }
@@ -2213,11 +2219,21 @@ void MSPComms::parseBuffer(QByteArray data)
                         QFile *file = new QFile(m_iniFile);
                         loadIniFile(file);
                         delete file;
+                        m_interrogateInProgress = false;
+                        startInterrogation();
                     }
                 }
                 else if (!m_iniFileLoaded)
                 {
+                    m_interrogateInProgress = false;
                     m_fileDownloader.downloadFile(path,"");
+                }
+                else if (m_iniFileLoaded)
+                {
+                    for (int i=0;i<m_pageInfoList.size();i++)
+                    {
+                        interrogateTaskStart("Location ID " + QString::number(i),requestPage(m_pageInfoList[i].pageReadCommand.toLatin1(),m_pageInfoList[i].pageSize,i));
+                    }
                 }
             }
             else
@@ -2227,6 +2243,23 @@ void MSPComms::parseBuffer(QByteArray data)
                     QFile *file = new QFile(m_iniFile);
                     loadIniFile(file);
                     delete file;
+                    m_interrogateInProgress = false;
+                    startInterrogation();
+                }
+                else if (!m_iniFileLoaded)
+                {
+                    //We've got no ini file!
+                    if (QMessageBox::information(0,"Error","No INI file provided to match firmware: " + versionstr))
+                    {
+                        return;
+                    }
+                }
+                else if (m_iniFileLoaded)
+                {
+                    for (int i=0;i<m_pageInfoList.size();i++)
+                    {
+                        interrogateTaskStart("Location ID " + QString::number(i),requestPage(m_pageInfoList[i].pageReadCommand.toLatin1(),m_pageInfoList[i].pageSize,i));
+                    }
                 }
             }
         }
@@ -2326,9 +2359,12 @@ void MSPComms::parseBuffer(QByteArray data)
                         }
                     }
                 }
-                QTimer *timer = new QTimer();
-                connect(timer,SIGNAL(timeout()),this,SLOT(getConsoleTextTimerTimeout()));
-                timer->start(1000);
+                if (m_firmwareVersion.contains("rusEFI"))
+                {
+                    QTimer *timer = new QTimer();
+                    connect(timer,SIGNAL(timeout()),this,SLOT(getConsoleTextTimerTimeout()));
+                    timer->start(1000);
+                }
 
                 emit interrogationComplete();
             }
