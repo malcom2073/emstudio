@@ -65,6 +65,27 @@ public:
         CAN
     };
 
+    class CommandStructure
+    {
+    public:
+        QString queryCommand;
+        QString versionInfo;
+        QString ochGetCommand;
+        int ochBlockSize;
+        int blockingFactor;
+    };
+    class PageInfoStruct
+    {
+    public:
+        int pageSize;
+        QString pageIdentifier;
+        QString burnCommand;
+        QString pageReadCommand;
+        QString pageValueCommand;
+        QString pageChunkCommand;
+        QString crc32CheckCommand;
+    };
+
     class RequestClass
     {
     public:
@@ -80,6 +101,8 @@ public:
         void addArg(QVariant arg,int size=0) { args.append(arg); argsize.append(size);}
     };
     MSPComms(QObject *parent=0);
+    QList<PageInfoStruct> m_pageInfoList;
+    CommandStructure m_commandStructure;
     Table* getTableFromName(QString name);
     Curve* getCurveFromName(QString name);
     ArrayConfigData *getArrayConfigData(QString name);
@@ -145,6 +168,7 @@ public:
     void rejectLocalChanges() { };
 private:
     QString m_iniFile;
+    bool m_bigEndian;
 
 
     QMap<QString,TableConfigData*> m_tableDataMap;
@@ -162,7 +186,7 @@ private slots:
     void getConsoleTextTimerTimeout();
 
 private:
-    int requestPage(QByteArray pagereqstring,int length);
+    int requestPage(QByteArray pagereqstring,int length,int pageid);
     unsigned long currentPacketNum;
     unsigned int currentPacketCount;
     QByteArray readPacket(QSerialPort *port);

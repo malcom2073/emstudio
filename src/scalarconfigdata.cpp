@@ -18,11 +18,11 @@ void ScalarConfigData::setData(QByteArray data)
     {
         if (m_elementType == ConfigData::SIGNED_ELEMENT)
         {
-            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,true).toFloat(),m_calcList);
+            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,true,this->m_bigEndian).toFloat(),m_calcList);
         }
         else
         {
-            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,false).toFloat(),m_calcList);
+            m_value = calcAxis(ConfigData::BytesToValue(newdata,m_elementSize,false,this->m_bigEndian).toFloat(),m_calcList);
         }
         //qDebug() << "Value for" << m_name << "offset" << m_offset << "size" << m_elementSize << m_value.toFloat();
     }
@@ -46,7 +46,7 @@ QByteArray ScalarConfigData::getBytes()
     }
     else
     {
-        return ConfigData::ValueToBytes(reverseCalcAxis(m_value.toFloat(),m_calcList),m_size,(m_elementType == ConfigData::SIGNED_ELEMENT));
+        return ConfigData::ValueToBytes(reverseCalcAxis(m_value.toFloat(),m_calcList),m_size,(m_elementType == ConfigData::SIGNED_ELEMENT),this->m_bigEndian);
     }
 }
 

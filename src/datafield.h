@@ -21,12 +21,14 @@ public:
     bool flagValue(QByteArray *payload);
     int offset() { return m_offset; }
     int size() { return m_size; }
+    void setIsBig(bool isbig) { m_bigEndian = isbig; }
 private:
     QString m_name;
     QString m_description;
     bool m_isFlags;
     bool m_isSigned;
     bool m_isFloat;
+    bool m_bigEndian;
     int m_bit;
     int m_offset;
     int m_size;

@@ -104,19 +104,19 @@ void EMSTest::startTest()
     // This won't match what PC calculator will tell you, becaues of byte ordering... but it seems to match the ECU.
 
     QByteArray shorttest = QByteArray::fromHex("CDABCDAB");
-    assert(ConfigData::BytesToValue(shorttest,4,false) == 2882382797);
-    assert(ConfigData::BytesToValue(shorttest,4,true)== -1412584499);
-    assert(ConfigData::BytesToValue(shorttest.mid(2),2,false) == 43981);
-    assert(ConfigData::BytesToValue(shorttest.mid(2),2,true)== -21555);
-    assert(ConfigData::BytesToValue(shorttest.mid(3),1,false) == 171);
-    assert(ConfigData::BytesToValue(shorttest.mid(3),1,true)== -85);
+    assert(ConfigData::BytesToValue(shorttest,4,false,false) == 2882382797);
+    assert(ConfigData::BytesToValue(shorttest,4,true,false)== -1412584499);
+    assert(ConfigData::BytesToValue(shorttest.mid(2),2,false,false) == 43981);
+    assert(ConfigData::BytesToValue(shorttest.mid(2),2,true,false)== -21555);
+    assert(ConfigData::BytesToValue(shorttest.mid(3),1,false,false) == 171);
+    assert(ConfigData::BytesToValue(shorttest.mid(3),1,true,false)== -85);
 
-    assert(ConfigData::ValueToBytes(QVariant(2882382797),4,false) == QByteArray::fromHex("CDABCDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(-1412584499),4,false) == QByteArray::fromHex("CDABCDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(43981),2,false) == QByteArray::fromHex("CDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(-21555),2,true) == QByteArray::fromHex("CDAB"));
-    assert(ConfigData::ValueToBytes(QVariant(171),1,false) == QByteArray::fromHex("AB"));
-    assert(ConfigData::ValueToBytes(QVariant(-85),1,true) == QByteArray::fromHex("AB"));
+    assert(ConfigData::ValueToBytes(QVariant(2882382797),4,false,false) == QByteArray::fromHex("CDABCDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(-1412584499),4,false,false) == QByteArray::fromHex("CDABCDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(43981),2,false,false) == QByteArray::fromHex("CDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(-21555),2,true,false) == QByteArray::fromHex("CDAB"));
+    assert(ConfigData::ValueToBytes(QVariant(171),1,false,false) == QByteArray::fromHex("AB"));
+    assert(ConfigData::ValueToBytes(QVariant(-85),1,true,false) == QByteArray::fromHex("AB"));
 
 
     m_failure = false;

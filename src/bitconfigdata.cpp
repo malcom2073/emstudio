@@ -33,7 +33,7 @@ void BitConfigData::setData(QByteArray data)
         {
             buf += (1 << b);
         }
-        unsigned int mydataint = ConfigData::BytesToValue(mydata,m_elementSize,false).toUInt();
+        unsigned int mydataint = ConfigData::BytesToValue(mydata,m_elementSize,false,this->m_bigEndian).toUInt();
         mydataint &= buf;
         mydataint = mydataint >> i.value().startbit;
         m_valueMap[i.key()] = mydataint;
@@ -55,7 +55,7 @@ QByteArray BitConfigData::getBytes()
     {
         totalval += (m_valueMap[i.key()].toUInt() << i.value().startbit);
     }
-    retval = ValueToBytes(totalval,m_size,false);
+    retval = ValueToBytes(totalval,m_size,false,this->m_bigEndian);
     qDebug() << "BitconfigData::getBytes Orig:" << m_origBytes.toHex() << "New:" << retval.toHex();
     return retval;
 }

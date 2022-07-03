@@ -17,6 +17,7 @@
 #include "tableview3d.h"
 #include "connectiondialog.h"
 #include "tableview2d.h"
+#include <QRegularExpression>
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -71,13 +72,11 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
     return( crc32 ^ 0xFFFFFFFF );
 }
 
-
 int main(int argc, char *argv[])
 {
 
 
     QApplication a(argc, argv);
-
     ConnectionDialog *dialog = new ConnectionDialog();
     dialog->setWindowTitle("EMStudio Connect");
     dialog->show();

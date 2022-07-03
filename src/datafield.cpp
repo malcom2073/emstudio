@@ -56,7 +56,7 @@ float DataField::getValue(QByteArray *payload,bool translatebeforescale)
         }
         else
         {
-            val = ConfigData::BytesToValue(payload->mid(m_offset,m_size),m_size,m_isSigned).toFloat();
+            val = ConfigData::BytesToValue(payload->mid(m_offset,m_size),m_size,m_isSigned,this->m_bigEndian).toFloat();
         }
         if (translatebeforescale)
         {

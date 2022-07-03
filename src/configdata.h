@@ -41,7 +41,7 @@ public:
         float val = *reinterpret_cast<float*>(value.data());
         return QVariant(val);
     }
-    static inline QByteArray ValueToBytes(QVariant value, int size, bool issigned)
+    static inline QByteArray ValueToBytes(QVariant value, int size, bool issigned,bool isbig)
     {
         QByteArray retval;
         if (issigned)
@@ -56,7 +56,14 @@ public:
                 int16_t val = value.toInt();
                 for (int i=0;i<size;i++)
                 {
-                    retval.append(val >> ((i)*8));
+                    if (isbig)
+                    {
+                        retval.append(val >> (((size-1)-i)*8));
+                    }
+                    else
+                    {
+                        retval.append(val >> ((i)*8));
+                    }
                 }
             }
             else if (size == 4)
@@ -64,7 +71,14 @@ public:
                 int32_t val = value.toInt();
                 for (int i=0;i<size;i++)
                 {
-                    retval.append(val >> ((i)*8));
+                    if (isbig)
+                    {
+                        retval.append(val >> (((size-1)-i)*8));
+                    }
+                    else
+                    {
+                        retval.append(val >> ((i)*8));
+                    }
                 }
             }
         }
@@ -80,7 +94,14 @@ public:
                 uint16_t val = value.toUInt();
                 for (int i=0;i<size;i++)
                 {
-                    retval.append(val >> ((i)*8));
+                    if (isbig)
+                    {
+                        retval.append(val >> (((size-1)-i)*8));
+                    }
+                    else
+                    {
+                        retval.append(val >> ((i)*8));
+                    }
                 }
             }
             else if (size == 4)
@@ -88,13 +109,20 @@ public:
                 uint32_t val = value.toUInt();
                 for (int i=0;i<size;i++)
                 {
-                    retval.append(val >> ((i)*8));
+                    if (isbig)
+                    {
+                        retval.append(val >> (((size-1)-i)*8));
+                    }
+                    else
+                    {
+                        retval.append(val >> ((i)*8));
+                    }
                 }
             }
         }
         return retval;
     }
-    static inline QVariant BytesToValue(QByteArray data,int size,bool issigned)
+    static inline QVariant BytesToValue(QByteArray data,int size,bool issigned,bool isbig)
     {
         if (issigned)
         {
@@ -103,7 +131,14 @@ public:
                 int8_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -112,7 +147,14 @@ public:
                 int16_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -121,7 +163,14 @@ public:
                 int32_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -133,7 +182,14 @@ public:
                 uint8_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -142,7 +198,14 @@ public:
                 uint16_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -151,7 +214,14 @@ public:
                 uint32_t val = 0;
                 for (int i=0;i<size;i++)
                 {
-                    val += ((unsigned char)data[i]) << ((i) * 8);
+                    if (isbig)
+                    {
+                        val += ((unsigned char)data[i]) << (((size-1)-i) * 8);
+                    }
+                    else
+                    {
+                        val += ((unsigned char)data[i]) << ((i) * 8);
+                    }
                 }
                 return val;
             }
@@ -159,8 +229,11 @@ public:
         return QVariant();
 
     }
+    void setBigEndian(bool isbig) { m_bigEndian = isbig; }
     void setSize(unsigned short size) { m_size = size; }
     void setOffset(unsigned int offset) { m_offset = offset; }
+    void setPage(int page) { m_page = page; }
+    int page() { return m_page; }
     unsigned int offset() { return m_offset; }
     unsigned int size() { return m_size; }
     virtual void setData(QByteArray data)=0;
@@ -228,6 +301,8 @@ public:
         return newval;
     }
 protected:
+    bool m_bigEndian;
+    int m_page;
     unsigned int m_offset;
     unsigned int m_size;
     unsigned int m_decimals;

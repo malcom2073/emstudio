@@ -10,7 +10,7 @@ void TableConfigData::setData(QByteArray data)
     m_origBytes = data.mid(m_offset,(m_elementSize * m_xSize * m_ySize));
     QVariantList newvals;
     QVariantList m_axis;
-    qDebug() << m_name << m_origBytes.toHex();
+    qDebug() << m_name << m_offset << m_elementSize << m_xSize << m_ySize << m_origBytes.toHex();
     for (unsigned int i=m_offset;i<(m_offset + (m_elementSize * m_xSize * m_ySize));i+=m_elementSize)
     {
         double val = 0;
@@ -38,23 +38,8 @@ void TableConfigData::setData(QByteArray data)
         }
         else
         {
-            // Not currently handled!
-            double val = 0;
-            for (int j=0;j<m_elementSize;j++)
-            {
-                val += (((unsigned char)data[(i + j)]) << (j * 8));
-            }
-            for (int c = 0; c< m_calcList.size();c++)
-            {
-                if (m_calcList.at(c).first == "add")
-                {
-                    val = val + m_calcList.at(c).second;
-                }
-                if (m_calcList.at(c).first == "mult")
-                {
-                    val = val * m_calcList.at(c).second;
-                }
-            }
+            float val = ConfigData::BytesToValue(data.mid(i,m_elementSize),m_elementSize,m_elementType == ConfigData::SIGNED_ELEMENT,this->m_bigEndian).toFloat();
+            val = ConfigData::calcAxis(val,m_calcList);
             newvals.append(val);
             if (newvals.length() >= m_xSize)
             {
@@ -90,7 +75,7 @@ QByteArray TableConfigData::getBytes()
             {
                 float floatval = m_values.at(x).at(y).toFloat();
                 floatval = ConfigData::reverseCalcAxis(floatval,m_calcList);
-                retval.append(ConfigData::ValueToBytes(floatval,m_elementSize,m_elementType == ConfigData::SIGNED_ELEMENT));
+                retval.append(ConfigData::ValueToBytes(floatval,m_elementSize,m_elementType == ConfigData::SIGNED_ELEMENT,this->m_bigEndian));
             }
         }
     }

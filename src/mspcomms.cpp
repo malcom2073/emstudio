@@ -18,6 +18,23 @@
 #include <QTimer>
 #include <QFile>
 #include <QMessageBox>
+#include <QRegularExpression>
+#include <QThread>
+
+QString convertString(QString input)
+{
+    QRegularExpression myregex("\\\\[xX][0-9a-fA-F]+");
+    QRegularExpressionMatch match = myregex.match(input);
+    if (match.hasMatch())
+    {
+        QString matched = match.captured(0);
+        QString orig = matched;
+        orig.detach(); // Because QString::replace modifies the origonal string.
+        return input.replace(input.indexOf(orig),orig.length(),QByteArray::fromHex(matched.replace("\\x","").toLatin1()));
+    }
+    return input;
+}
+
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
 {
@@ -128,6 +145,7 @@ TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linev
     }
 
     TableConfigData *data = new TableConfigData();
+    data->setBigEndian(m_bigEndian);
     connect(data,&TableConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
     data->setType(ConfigData::ARRAY);
     //It's a 3d array.
@@ -213,6 +231,7 @@ ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linev
     }
 
     ArrayConfigData *data = new ArrayConfigData();
+    data->setBigEndian(m_bigEndian);
     connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
     data->setCalc(calclist);
     data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
@@ -275,12 +294,27 @@ void MSPComms::loadIniFile(QFile *inifile)
     bool indialog = false;
     MenuSetup menu;
     int pagenumint = 0;
+    int nPages = 0;
 
 
     foreach (QString line,inilist)
     {
-        if (line.trimmed().startsWith(";"))
+        line = line.trimmed();
+        if (line.startsWith(";"))
         {
+            continue;
+        }
+        else if (line == "")
+        {
+            continue;
+        }
+        if (line.contains(";"))
+        {
+            line = line.mid(0,line.indexOf(";")-1);
+        }
+        if (line.startsWith("[MegaTune]"))
+        {
+            section = 8;
             continue;
         }
         if (line.startsWith("[Constants]"))
@@ -314,6 +348,25 @@ void MSPComms::loadIniFile(QFile *inifile)
         if (section == 2)
         {
             //Get burst mode command here
+        }
+        if (section == 8)
+        {
+            if (line.contains("="))
+            {
+            QStringList linesplit = line.split("=");
+
+            QString cmd = linesplit[0].trimmed();
+            QString args = linesplit[1].trimmed();
+            if (cmd == "queryCommand")
+            {
+
+                m_commandStructure.queryCommand = args.replace("\"","");
+            }
+            else if (cmd == "versionInfo")
+            {
+                m_commandStructure.versionInfo = args.replace("\"","");;
+            }
+            }
         }
         if (section == 5)
         {
@@ -525,6 +578,14 @@ void MSPComms::loadIniFile(QFile *inifile)
             QStringList linesplit = line.split("=");
             if (linesplit.size() > 1)
             {
+                if (linesplit[0].trimmed() == "ochGetCommand")
+                {
+                    m_commandStructure.ochGetCommand = linesplit[1].trimmed().replace("\"","");
+                }
+                if (linesplit[0].trimmed() == "ochBlockSize")
+                {
+                    m_commandStructure.ochBlockSize = linesplit[1].trimmed().toInt();
+                }
                 QStringList linevalsplit = linesplit[1].split(",");
                 if (linevalsplit.size() > 5)
                 {
@@ -591,6 +652,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                         scalar.unit = linevalsplit[3].trimmed().mid(1,linevalsplit[3].trimmed().length()-2);
                         //dataLogList.append(scalar);
                         DataField f(linesplit[0].trimmed(),"",scalar.offset,scalar.size,scalar.scale,scalar.translate,0,0,scalar.signedval,isfloat);
+                        f.setIsBig(m_bigEndian);
                         dataLogMap.append(f);
                         //dataLogMap[linesplit[0].trimmed()] = scalar;
                     }
@@ -599,7 +661,34 @@ void MSPComms::loadIniFile(QFile *inifile)
         }
         if (section == 1)
         {
-            if (line.trimmed().startsWith("page=") || line.trimmed().startsWith("page "))
+            if (line.startsWith("nPages"))
+            {
+                //Number of pages
+                if (line.contains("="))
+                {
+                    nPages = line.split("=")[1].trimmed().toInt();
+                }
+                for (int i=0;i<nPages;i++)
+                {
+                    m_pageInfoList.append(PageInfoStruct());
+                }
+            }
+            if (line.startsWith("blockingFactor"))
+            {
+                m_commandStructure.blockingFactor = line.split("=")[1].trimmed().toInt();
+            }
+            if (line.startsWith("endianness"))
+            {
+                if (line.split("=")[1].trimmed().contains("big"))
+                {
+                    m_bigEndian = true;
+                }
+                else
+                {
+                    m_bigEndian = false;
+                }
+            }
+            if (line.startsWith("page=") || line.startsWith("page "))
             {
                 qDebug() << "Page found:" << line.replace("\r","").replace("\n","");
                 if (pagenum != "")
@@ -615,18 +704,18 @@ void MSPComms::loadIniFile(QFile *inifile)
                 if (line.split("=").size() > 0)
                 {
                     pagenum = line.split("=")[1];
-                    pagenum = pagenum.mid(0,pagenum.indexOf(";")).trimmed();
+                    pagenum = pagenum.mid(0,pagenum.indexOf(";")).replace("\"","").trimmed();
                     qDebug() << "New pagenum" << pagenum;
 
-                    pagenumint = pagenum.toInt();
+                    pagenumint = pagenum.toInt()-1;
+                    pagenum = QString::number(pagenumint);
                     //QStringList split = pageIdent[pagenumint].split("\\");
-                    int pagesize = pageSize[pagenumint-1];
+                    int pagesize = pageSize[pagenumint];
                     //bool ok = false;
                     //QString pagestr = QString("0" + split[split.size()-1].replace("\"",""));
                     //pagenumint = pagestr.toInt(&ok,16);
                     //qDebug() << ok << pagenum << i.key().toInt() << pagestr;
                     QList<ConfigBlock> blocklist;
-                    m_pageSizeMap[pagenumint] = pagesize;
                 }
                 else
                 {
@@ -641,10 +730,11 @@ void MSPComms::loadIniFile(QFile *inifile)
                     //Page identifiers, these are important!
                     QString idents = line.trimmed().split("=")[1];
                     QStringList identsplit = idents.split(",");
-                    pageIdent.append("");
+                    //pageIdent.append("");
                     for (int j=0;j<identsplit.size();j++)
                     {
                         pageIdent.append(identsplit[j].trimmed());
+                        m_pageInfoList[j].pageIdentifier = identsplit[j].trimmed().replace("\"","");
                     }
                 }
                 if (line.trimmed().startsWith("pageSize"))
@@ -656,13 +746,14 @@ void MSPComms::loadIniFile(QFile *inifile)
                     {
                         pageint = sizesplit[j].trimmed().toInt();
                         pageSize.append(pageint);
+                        m_pageInfoList[j].pageSize = pageint;
+                        //if (!m_pageBufferMap.contains(0))
+                        //{
+                            m_pageBufferMap[j] = QByteArray();
+                            m_pageBufferFilledMap[j] = 0;
+                        //}
+                        m_pageBufferMap[j].resize(pageint);
                     }
-                    if (!m_pageBufferMap.contains(0))
-                    {
-                        m_pageBufferMap[0] = QByteArray();
-                        m_pageBufferFilledMap[0] = 0;
-                    }
-                    m_pageBufferMap[0].resize(pageint);
                 }
                 if (line.trimmed().startsWith("pageActivate"))
                 {
@@ -677,6 +768,42 @@ void MSPComms::loadIniFile(QFile *inifile)
                         pageActivate.append(value);
                     }
                 }
+                else if (line.startsWith("pageReadCommand"))
+                {
+                    QString pagecommands = line.trimmed().split("=")[1];
+                    QStringList commandsplit = pagecommands.split(",");
+                    for (int j=0;j<commandsplit.size();j++)
+                    {
+                        m_pageInfoList[j].pageReadCommand = convertString(commandsplit[j].trimmed().replace("\"",""));
+                    }
+                }
+                else if (line.startsWith("pageValueWrite"))
+                {
+                    QString pagecommands = line.trimmed().split("=")[1];
+                    QStringList commandsplit = pagecommands.split(",");
+                    for (int j=0;j<commandsplit.size();j++)
+                    {
+                        m_pageInfoList[j].pageValueCommand = commandsplit[j].trimmed().replace("\"","");
+                    }
+                }
+                else if (line.startsWith("pageChunkWrite"))
+                {
+                    QString pagecommands = line.trimmed().split("=")[1];
+                    QStringList commandsplit = pagecommands.split(",");
+                    for (int j=0;j<commandsplit.size();j++)
+                    {
+                        m_pageInfoList[j].pageChunkCommand = commandsplit[j].trimmed().replace("\"","");
+                    }
+                }
+                else if (line.startsWith("crc32CheckCommand"))
+                {
+                    QString pagecommands = line.trimmed().split("=")[1];
+                    QStringList commandsplit = pagecommands.split(",");
+                    for (int j=0;j<commandsplit.size();j++)
+                    {
+                        m_pageInfoList[j].crc32CheckCommand = commandsplit[j].trimmed().replace("\"","");
+                    }
+                }
                 QStringList linesplit = line.split("=");
                 if (linesplit.size() > 1)
                 {
@@ -688,6 +815,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                         {
                             //Scalar
                             ScalarConfigData *data = new ScalarConfigData();
+                            data->setBigEndian(m_bigEndian);
                             connect(data,&ScalarConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
                             //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
                             data->setOffset(linevalsplit[2].trimmed().toInt());
@@ -753,10 +881,11 @@ void MSPComms::loadIniFile(QFile *inifile)
                             //scalarMap[linesplit[0].trimmed()] = scalar;
 
 
-                            connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-                            connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
+                            //connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
+                            //connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
                             data->setSize(1);
                             data->setName(linesplit[0].trimmed());
+                            data->setPage(pagenum.toInt());
                             //data->setLocationId(pagenumint);
                             //m_configDataMap[linesplit[0].trimmed()] = data;
                             m_scalarDataMap[linesplit[0].trimmed()] = data;
@@ -778,6 +907,8 @@ void MSPComms::loadIniFile(QFile *inifile)
                             else
                             {
                                 data = new BitConfigData();
+                                data->setBigEndian(m_bigEndian);
+                                data->setPage(pagenum.toInt());
                                 connect(data,&BitConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
                                 m_bitDataLocationMap.insert(offset,data);
                             }
@@ -850,11 +981,15 @@ void MSPComms::loadIniFile(QFile *inifile)
                             QString format = linevalsplit[3].trimmed();
                             if (format.contains("x"))
                             {
-                                m_tableDataMap.insert(linesplit[0].trimmed(),tableConfigFromIniLine(linesplit[0].trimmed(),linevalsplit));
+                                TableConfigData *data = tableConfigFromIniLine(linesplit[0].trimmed(),linevalsplit);
+                                data->setPage(pagenum.toInt());
+                                m_tableDataMap.insert(linesplit[0].trimmed(),data);
                             }
                             else
                             {
-                                m_arrayDataMap.insert(linesplit[0].trimmed(),arrayConfigFromIniLine(linesplit[0].trimmed(),linevalsplit));
+                                ArrayConfigData *data = arrayConfigFromIniLine(linesplit[0].trimmed(),linevalsplit);
+                                data->setPage(pagenum.toInt());
+                                m_arrayDataMap.insert(linesplit[0].trimmed(),data);
                             }
                             m_configNameList.append(linesplit[0].trimmed());
                         }
@@ -1011,7 +1146,7 @@ void MSPComms::loadIniFile(QFile *inifile)
         //qDebug() << ok << pagenum << i.key().toInt() << pagestr;
         QList<ConfigBlock> blocklist;
         m_pageSizeList.append(pagesize);
-        m_pageReqStringList.append(pageActivate[pagenum]);
+        //m_pageReqStringList.append(pageActivate[pagenum]);
         for (QMap<QString,scalarclass>::const_iterator j = i.value().constBegin();j!=i.value().constEnd();j++)
         {
             TSBPConfigData *data = new TSBPConfigData();
@@ -1090,13 +1225,14 @@ void MSPComms::loadIniFile(QFile *inifile)
     //pagereq.append((char)0x0);
     //pagereq.append((char)0x4E);
     //pagereq.append((char)0x20);
-    interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
+    //interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
 
 }
 MSPComms::MSPComms(QObject *parent) : QObject(parent)
 {
     qRegisterMetaType<QMap<QString,QString> >("QMap<QString,QString>");
     m_connected = false;
+    m_bigEndian = false;
     m_iniFileLoaded = false;
     m_dataDecoder = new TSBPDataPacketDecoder();
     connect(this,SIGNAL(dataLogPayloadReceived(QByteArray)),m_dataDecoder,SLOT(decodePayload(QByteArray)));
@@ -1373,13 +1509,24 @@ void MSPComms::startInterrogation()
 {
     if (!m_interrogateInProgress)
     {
+        if (m_iniFile != "" && !m_iniFileLoaded)
+        {
+            QFile *file = new QFile(m_iniFile);
+            loadIniFile(file);
+            delete file;
+        }
         //m_interrogatePacketList.clear();
         m_interrogateInProgress = true;
+        interrogateTaskStart("Ecu Info",getFirmwareVersion());
+        for (int i=0;i<m_pageInfoList.size();i++)
+        {
+            interrogateTaskStart("Location ID " + QString::number(i),requestPage(m_pageInfoList[i].pageReadCommand.toLatin1(),m_pageInfoList[i].pageSize,i));
+        }
         for (int i=0;i<m_pageReqStringList.size();i++)
         {
             qDebug() << "Requesting page:" << i << m_pageReqStringList.at(i) << m_pageSizeList.at(i);
         }
-        interrogateTaskStart("Ecu Info",getFirmwareVersion());
+
         QByteArray pagereq;
         pagereq.append("R");
         //pagereq.append((char)0x0); // CANID
@@ -1471,22 +1618,26 @@ void MSPComms::setLogFileName(QString filename)
 
 void MSPComms::sendPacket(RequestClass req)
 {
+    QThread::msleep(10);
     //qDebug() << "sendPacket called";
+
     m_waitingForPacketResponse = true;
     if (req.type == RETRIEVE_PAGE)
     {
         //Retrieve page!
         QByteArray pagereqstr = req.args.at(0).toByteArray(); //Page Name
-        int offset = req.args.at(1).toInt(); //Size
-        int size = req.args.at(2).toInt(); //Size
-        qDebug() << "Sending page retrieve" << pagereqstr << offset << size;
+        //int offset = req.args.at(1).toInt(); //Size
+        //int size = req.args.at(2).toInt(); //Size
+        //qDebug() << "Sending page retrieve" << pagereqstr << offset << size;
+        qDebug() << "Sending Page request:" << pagereqstr.toHex();
+        qDebug() << "Sending Page request:" << pagereqstr;
         m_currentRequest = req;
         //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
         //m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
-        pagereqstr.append(offset & 0xFF);
-        pagereqstr.append((offset >> 8) & 0xFF);
-        pagereqstr.append(size & 0xFF);
-        pagereqstr.append((size >> 8) & 0xFF);
+        //pagereqstr.append(offset & 0xFF);
+        //pagereqstr.append((offset >> 8) & 0xFF);
+        //pagereqstr.append(size & 0xFF);
+        //pagereqstr.append((size >> 8) & 0xFF);
         uint32_t crc = Crc32_ComputeBuf(0,pagereqstr.data(),pagereqstr.size());
         qDebug() << "Pagestr:" << pagereqstr.toHex();
         QByteArray packet;
@@ -1515,17 +1666,19 @@ void MSPComms::sendPacket(RequestClass req)
         qDebug() << "Getting firmware version";
         m_currentRequest = req;
         //m_serialPort->requestPacket(QByteArray("H"),0);
-        QByteArray req = "S";
+        QByteArray req = m_commandStructure.queryCommand.toLatin1();
         uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
         QByteArray packet;
         packet.append((char)0x0);
         packet.append((char)0x1);
         packet.append(req);
+        //packet.append((char)0x0);
         packet.append(crc >> 24);
         packet.append(crc >> 16);
         packet.append(crc >> 8);
         packet.append(crc >> 0);
         qDebug() << "Writing firmware version packet";
+        qDebug() << packet.toHex();
         //m_serialPort->requestPacket(packet,0);
         if (m_connectionType == TCPSOCKET)
         {
@@ -1619,18 +1772,25 @@ void MSPComms::sendPacket(RequestClass req)
         //qDebug() << "Getting data frame";
         m_currentRequest = req;
         //m_serialPort->requestPacket(QByteArray("H"),0);
-        QByteArray reqbytes = "O";
+
+        QByteArray reqbytes = m_commandStructure.ochGetCommand.toLatin1();
+        if (reqbytes.contains("%2o") && reqbytes.contains("%2c"))
+        {
         int offset = req.args.at(0).toInt(); //Size
         int size = req.args.at(1).toInt(); //Size
         //QByteArray data = req.args.at(3).toByteArray();
         //qDebug() << "Sending update block:" << data.toHex() << offset << size;
-        m_currentRequest = req;
         //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
         //m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
-        reqbytes.append(static_cast<char>(offset & 0xFF));
-        reqbytes.append(static_cast<char>((offset >> 8) & 0xFF));
-        reqbytes.append(static_cast<char>(size & 0xFF));
-        reqbytes.append(static_cast<char>((size >> 8) & 0xFF));
+        QByteArray offsetbytes;
+        offsetbytes.append(static_cast<char>(offset & 0xFF));
+        offsetbytes.append(static_cast<char>((offset >> 8) & 0xFF));
+        QByteArray sizebytes;
+        sizebytes.append(static_cast<char>(size & 0xFF));
+        sizebytes.append(static_cast<char>((size >> 8) & 0xFF));
+        reqbytes = reqbytes.replace("%2o",offsetbytes).replace("%2c",sizebytes);
+        }
+        m_currentRequest = req;
 
         //req.append((char)0x0);
         //req.append((char)0x0);
@@ -1798,20 +1958,83 @@ void MSPComms::serialPortConnected()
     m_state = 2;
     emit connected();
 }
-int MSPComms::requestPage(QByteArray pagereqstring,int length)
+int MSPComms::requestPage(QByteArray pagereqstring,int length,int pageid)
 {
+/*    readbuf[5] = maxoffset >> 8; //Offset
+    readbuf[6] = 0; //Offset
+    readbuf[7] = 0 >> 8; //Length
+    readbuf[8] = maxoffset % 255; //Length
+    quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
+    readbuf[9] = crc >> 24;
+    readbuf[10] = crc >> 16;
+    readbuf[11] = crc >> 8;
+    readbuf[12] = crc >> 0;
+    m_serialPort.writeBytes(readbuf,13);
+*/
     //QMutexLocker locker(&reqListMutex);
-
-    for (int i=0;i<m_pageSizeMap[1];i++)
+    for (int i=0;i<length;i+=255)
     {
+        QByteArray nextreq = pagereqstring;
+        QByteArray canid;
+        canid.append((char)0x0);
+        //canid.append((char)0x0);
+        QByteArray size;
+        if (length-i >= 255)
+        {
+            if (m_bigEndian)
+            {
+                size.append((char)0x0);
+                size.append((char)0xFF);
+            }
+            else
+            {
+                size.append((char)0xFF);
+                size.append((char)0x0);
+            }
+        }
+        else
+        {
+            if (m_bigEndian)
+            {
+                size.append((char)0x0);
+                size.append((char)((length-i) & 0xFF));
+            }
+            else
+            {
+                size.append((char)((length-i) & 0xFF));
+                size.append((char)0x0);
+            }
+        }
+        QByteArray offset;
+        if (m_bigEndian)
+        {
+            offset.append((char)((i >> 8) & 0xFF));
+            offset.append((char)i & 0xFF);
+        }
+        else
+        {
+            offset.append((char)i & 0xFF);
+            offset.append((char)((i >> 8) & 0xFF));
+        }
+
+        qDebug() << "PageReqString:" << nextreq.toHex();
+        if (nextreq.contains("\\$tsCanId"))
+        {
+            nextreq = nextreq.replace("\\$tsCanId",canid);
+        }
+        //pagereqstring = nextreq.replace("\\$tsCanId",QByteArray());
+        qDebug() << "PageReqString:" << nextreq.toHex();
+        nextreq = nextreq.replace("%2o",offset).replace("%2c",size);
+        qDebug() << "PageReqString:" << nextreq.toHex();
         RequestClass req;
         req.type = RETRIEVE_PAGE;
         req.sequencenumber = currentPacketNum++;
-        emit interrogateTaskStart(QString("Location ID ") + QString(pagereqstring) + ":" + QString::number(i),currentPacketNum-1);
-        req.addArg(pagereqstring);
+        emit interrogateTaskStart(QString("Location ID ") + QString::number(i),currentPacketNum-1);
+        req.addArg(nextreq);
         req.addArg(i);
-        req.addArg(((m_pageSizeMap[1] - i >= 256) ? 256 : m_pageSizeMap[1]-i));
-        i += 255;
+        req.addArg(((length - i >= 255) ? 255 : length-i));
+        req.addArg(pageid);
+        //i += 255;
         m_reqList.append(req);
     }
     triggerNextSend();
@@ -1819,28 +2042,17 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length)
 }
 void MSPComms::getDataReq()
 {
-    RequestClass req;
-    req.type = GET_DATA;
-    req.addArg(0);
-    req.addArg(341);
-    req.sequencenumber = currentPacketNum++;
-    m_reqList.append(req);
+    for (int i=0;i<m_commandStructure.ochBlockSize;i+=m_commandStructure.blockingFactor)
+    {
+        RequestClass req;
+        req.type = GET_DATA;
+        req.addArg(i);
+        req.addArg(((m_commandStructure.blockingFactor-i >= m_commandStructure.ochBlockSize) ? m_commandStructure.ochBlockSize : m_commandStructure.blockingFactor-i ));
+        req.sequencenumber = currentPacketNum++;
+        m_reqList.append(req);
 
-    RequestClass req2;
-    req2.type = GET_DATA;
-    req2.addArg(341);
-    req2.addArg(341);
-    req2.sequencenumber = currentPacketNum++;
-    m_reqList.append(req2);
-
-    RequestClass req3;
-    req3.type = GET_DATA;
-    req3.addArg(675);
-    req3.addArg(334);
-    req3.sequencenumber = currentPacketNum++;
-    m_reqList.append(req3);
+    }
     triggerNextSend();
-
 }
 void MSPComms::triggerNextSend()
 {
@@ -1904,7 +2116,7 @@ void MSPComms::handleReadyRead()
         {
             qDebug() << "Buffer underrun, resend command";
             //sendPacket(m_currentRequest);
-            //resend = true;
+            resend = true;
             continue;
         }
         if (((unsigned char)packettoparse[2]) == 0x83)
@@ -1945,7 +2157,7 @@ void MSPComms::parseBuffer(QByteArray data)
         qDebug() << "Packet error: " << packettoparse[0];
         return;
     }*/
-    if ((unsigned int)data[2] != 0)
+    if ((unsigned int)data[2] != 0 && (unsigned int)data[2] != 1)
     {
         qDebug() << "Packet error:" << (unsigned int)data[2];
     }
@@ -1958,32 +2170,43 @@ void MSPComms::parseBuffer(QByteArray data)
             emit interrogateTaskSucceed(m_currentRequest.sequencenumber);
             qDebug() << "Got firmware version:" << versionstr;
             //"rusEFI 2022.06.25.all.2759818183\u0000
-            QStringList versionstrlist = versionstr.mid(0,versionstr.length()-1).replace("\"","").split(" ");
-            QString path = "https://rusefi.com/online/ini/rusefi/" + versionstrlist[1].replace(".","/") + ".ini";
-            if (m_iniFile != "" && !m_iniFileLoaded)
+            if (versionstr.contains("rusEFI"))
             {
-                QStringList inifilesplit = m_iniFile.split("/");
-                QStringList versionsplit = versionstrlist[1].split("/");
-                QString filename = inifilesplit[inifilesplit.length()-1];
-                if (filename.trimmed() != (versionsplit[versionsplit.length()-1] + ".ini"))
+                QStringList versionstrlist = versionstr.mid(0,versionstr.length()-1).replace("\"","").split(" ");
+                QString path = "https://rusefi.com/online/ini/rusefi/" + versionstrlist[1].replace(".","/") + ".ini";
+                if (m_iniFile != "" && !m_iniFileLoaded)
                 {
-                    if (QMessageBox::question(0,"Wrong INI File","INI File provided is " + filename + " however firmware needs " + versionsplit[versionsplit.length()-1] + ".ini. Would you like to automatically download the appropraite file?") == QMessageBox::Yes)
+                    QStringList inifilesplit = m_iniFile.split("/");
+                    QStringList versionsplit = versionstrlist[1].split("/");
+                    QString filename = inifilesplit[inifilesplit.length()-1];
+                    if (filename.trimmed() != (versionsplit[versionsplit.length()-1] + ".ini"))
                     {
-                        m_fileDownloader.downloadFile(path,"");
+                        if (QMessageBox::question(0,"Wrong INI File","INI File provided is " + filename + " however firmware needs " + versionsplit[versionsplit.length()-1] + ".ini. Would you like to automatically download the appropraite file?") == QMessageBox::Yes)
+                        {
+                            m_fileDownloader.downloadFile(path,"");
+                        }
+                    }
+                    else
+                    {
+                        QFile *file = new QFile(m_iniFile);
+                        loadIniFile(file);
+                        delete file;
                     }
                 }
-                else
+                else if (!m_iniFileLoaded)
+                {
+                    m_fileDownloader.downloadFile(path,"");
+                }
+            }
+            else
+            {
+                if (m_iniFile != "" && !m_iniFileLoaded)
                 {
                     QFile *file = new QFile(m_iniFile);
                     loadIniFile(file);
                     delete file;
                 }
             }
-            else if (!m_iniFileLoaded)
-            {
-                m_fileDownloader.downloadFile(path,"");
-            }
-
         }
         else if (m_currentRequest.type == GET_DATA)
         {
@@ -1992,7 +2215,7 @@ void MSPComms::parseBuffer(QByteArray data)
             int offset = m_currentRequest.args.at(0).toInt(); //Size
             int size = m_currentRequest.args.at(1).toInt(); //Size
             m_dataReqBuffer.append(realtimedata);
-            if (offset > 674 )
+            if (offset + size >= m_commandStructure.ochBlockSize)
             {
                 //emit dataLogPayloadReceived(m_dataReqBuffer,QByteArray());
                 emit dataLogPayloadReceived(m_dataReqBuffer);
@@ -2018,47 +2241,68 @@ void MSPComms::parseBuffer(QByteArray data)
             QByteArray pagereqstr = m_currentRequest.args.at(0).toByteArray(); //Page Name
             int offset = m_currentRequest.args.at(1).toInt(); //Size
             int size = m_currentRequest.args.at(2).toInt(); //Size
+            int pageid = m_currentRequest.args.at(3).toInt(); //Size
             qDebug() << "Got page:" << pagereqstr << "size" << size << "offset" << offset << "actualsize" << data.size();
             //Now we have selected the page, submit a request for its data.
-            m_pageBufferMap[0].replace(offset,size,data);
-            m_pageBufferFilledMap[0] += size;
-            qDebug() << "Size of page 0 is now:" << m_pageBufferFilledMap[0] << ":" << m_pageBufferMap[0].size();
+            m_pageBufferMap[pageid].replace(offset,size,data);
+            m_pageBufferFilledMap[pageid] += size;
+            qDebug() << "Size of page" << pageid << "is now:" << m_pageBufferFilledMap[pageid] << ":" << m_pageBufferMap[pageid].size();
             //m_pageBuffer.append(data);
             emit interrogateTaskSucceed(m_currentRequest.sequencenumber);
             if (m_reqList.size() == 0)
             {
-                for (QMap<QString,TSBPTable3DData*>::const_iterator i=m_3dTableData.constBegin();i!=m_3dTableData.constEnd();i++)
+                for (QMap<int,QByteArray>::const_iterator page=m_pageBufferMap.constBegin();page!=m_pageBufferMap.constEnd();page++)
                 {
-                    i.value()->setData(0,false,m_pageBufferMap[0]);
-                }
-                for (QMap<QString,TSBPTable2DData*>::const_iterator i=m_2dTableData.constBegin();i!=m_2dTableData.constEnd();i++)
-                {
-                    i.value()->setData(0,false,m_pageBufferMap[0]);
-                }
-                //QMap<QString,TSBPConfigData*> m_configDataMap;
-                for (QMap<QString,TSBPConfigData*>::const_iterator i = m_configDataMap.constBegin();i!=m_configDataMap.constEnd();i++)
-                {
-                    i.value()->setData(m_pageBufferMap[0]);
-                }
-                for (QMap<QString,TableConfigData*>::const_iterator i=m_tableDataMap.constBegin();i!=m_tableDataMap.constEnd();i++)
-                {
-                    i.value()->setData(m_pageBufferMap[0]);
+                    /*for (QMap<QString,TSBPTable3DData*>::const_iterator i=m_3dTableData.constBegin();i!=m_3dTableData.constEnd();i++)
+                    {
+                        //if (i.value()->)
+                        i.value()->setData(0,false,m_pageBufferMap[0]);
+                    }
+                    for (QMap<QString,TSBPTable2DData*>::const_iterator i=m_2dTableData.constBegin();i!=m_2dTableData.constEnd();i++)
+                    {
+                        i.value()->setData(0,false,m_pageBufferMap[0]);
+                    }
+                    //QMap<QString,TSBPConfigData*> m_configDataMap;
+                    for (QMap<QString,TSBPConfigData*>::const_iterator i = m_configDataMap.constBegin();i!=m_configDataMap.constEnd();i++)
+                    {
+                        i.value()->setData(m_pageBufferMap[0]);
+                    }*/
+                    for (QMap<QString,TableConfigData*>::const_iterator i=m_tableDataMap.constBegin();i!=m_tableDataMap.constEnd();i++)
+                    {
+                        if (i.value()->page() == page.key())
+                        {
+                            if (i.value()->name() == "veTable1")
+                            {
+                                qDebug() << "VETABLE:";
+                                qDebug() << page.value();
+                            }
+                            i.value()->setData(page.value());
+                        }
+                    }
+                    for (QMap<QString,ScalarConfigData*>::const_iterator i=m_scalarDataMap.constBegin();i!=m_scalarDataMap.constEnd();i++)
+                    {
+                        if (i.value()->page() == page.key())
+                        {
+                            i.value()->setData(page.value());
+                        }
 
-                }
-                for (QMap<QString,ScalarConfigData*>::const_iterator i=m_scalarDataMap.constBegin();i!=m_scalarDataMap.constEnd();i++)
-                {
-                    i.value()->setData(m_pageBufferMap[0]);
-
-                }
-                for (QMap<QString,BitConfigData*>::const_iterator i=m_bitDataNameMap.constBegin();i!=m_bitDataNameMap.constEnd();i++)
-                {
-                    i.value()->setData(m_pageBufferMap[0]);
-                }
+                    }
+                    for (QMap<QString,BitConfigData*>::const_iterator i=m_bitDataNameMap.constBegin();i!=m_bitDataNameMap.constEnd();i++)
+                    {
+                        if (i.value()->page() == page.key())
+                        {
+                            i.value()->setData(page.value());
+                        }
+                    }
 
 
-                for (QMap<QString,ArrayConfigData*>::const_iterator i=m_arrayDataMap.constBegin();i!=m_arrayDataMap.constEnd();i++)
-                {
-                    i.value()->setData(m_pageBufferMap[0]);
+                    for (QMap<QString,ArrayConfigData*>::const_iterator i=m_arrayDataMap.constBegin();i!=m_arrayDataMap.constEnd();i++)
+                    {
+                        if (i.value()->page() == page.key())
+                        {
+                            i.value()->setData(page.value());
+                        }
+                    }
                 }
                 QTimer *timer = new QTimer();
                 connect(timer,SIGNAL(timeout()),this,SLOT(getConsoleTextTimerTimeout()));
