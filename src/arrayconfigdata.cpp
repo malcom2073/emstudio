@@ -43,23 +43,9 @@ void ArrayConfigData::setData(QByteArray data)
         }
         else
         {
-            double val = 0;
-            for (int j=0;j<m_elementSize;j++)
-            {
-                //val += (((unsigned char)data[(i + j)]) << (((m_elementSize-1) - j) * 8));
-                val += (((unsigned char)data[(i + j)]) << ((j) * 8));
-            }
-            for (int c = 0; c< m_calcList.size();c++)
-            {
-                if (m_calcList.at(c).first == "add")
-                {
-                    val = val + m_calcList.at(c).second;
-                }
-                if (m_calcList.at(c).first == "mult")
-                {
-                    val = val * m_calcList.at(c).second;
-                }
-            }
+
+            float val = ConfigData::BytesToValue(data.mid(i,m_elementSize),m_elementSize,m_elementType == ConfigData::SIGNED_ELEMENT,this->m_bigEndian).toFloat();
+            val = ConfigData::calcAxis(val,m_calcList);
             m_values.append(val);
         }
     }

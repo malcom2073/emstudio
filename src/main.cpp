@@ -71,7 +71,6 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
     }
     return( crc32 ^ 0xFFFFFFFF );
 }
-
 int main(int argc, char *argv[])
 {
 

@@ -34,6 +34,27 @@ QString convertString(QString input)
     }
     return input;
 }
+QStringList splitValueLine(QString line)
+{
+    QStringList retval;
+    if (line.contains("{"))
+    {
+        //Splits a line with commas, respecting "{}" characters.
+        foreach (QString str,line.split(QRegularExpression(",(?=(?:[^\\{]*\\{[^\\}]*\\})*[^\\}]*$)")))
+        {
+            retval.append(str.trimmed());
+        }
+        qDebug() <<  retval;
+    }
+    else
+    {
+        foreach (QString str,line.split(","))
+        {
+            retval.append(str.trimmed());
+        }
+    }
+    return retval;
+}
 
 static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
                        size_t bufLen )
@@ -673,11 +694,11 @@ void MSPComms::loadIniFile(QFile *inifile)
                     m_pageInfoList.append(PageInfoStruct());
                 }
             }
-            if (line.startsWith("blockingFactor"))
+            else if (line.startsWith("blockingFactor"))
             {
                 m_commandStructure.blockingFactor = line.split("=")[1].trimmed().toInt();
             }
-            if (line.startsWith("endianness"))
+            else if (line.startsWith("endianness"))
             {
                 if (line.split("=")[1].trimmed().contains("big"))
                 {
@@ -688,7 +709,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                     m_bigEndian = false;
                 }
             }
-            if (line.startsWith("page=") || line.startsWith("page "))
+            else if (line.startsWith("page=") || line.startsWith("page "))
             {
                 qDebug() << "Page found:" << line.replace("\r","").replace("\n","");
                 if (pagenum != "")
@@ -807,7 +828,8 @@ void MSPComms::loadIniFile(QFile *inifile)
                 QStringList linesplit = line.split("=");
                 if (linesplit.size() > 1)
                 {
-                    QStringList linevalsplit = linesplit[1].split(",");
+                    //QStringList linevalsplit = linesplit[1].split(",");
+                    QStringList linevalsplit = splitValueLine(linesplit[1]);
                     if (linevalsplit.size() > 5)
                     {
                         //qDebug() << linesplit[1];
