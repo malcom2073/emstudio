@@ -211,7 +211,6 @@ ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linev
 
     if (linevalsplit[1].trimmed() == "S16")
     {
-        elementsize = 2;
         data->setElementSize(2);
         data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
@@ -232,7 +231,6 @@ ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linev
     }
     else if (linevalsplit[1].trimmed() == "S32")
     {
-        elementsize=4;
         data->setElementSize(4);
         data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
