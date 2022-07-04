@@ -8,9 +8,7 @@
 
 #include "mspcomms.h"
 #include "tsbpdatapacketdecoder.h"
-//#include "serialport.h"
 #include <QSerialPort>
-//#include "QsLog.h"
 #include <QDebug>
 #include <QMap>
 #include <QStringList>
@@ -46,7 +44,7 @@ QStringList splitValueLine(QString line)
         }
         qDebug() <<  retval;
     }
-    else
+    else // No {}, so split like normal.
     {
         foreach (QString str,line.split(","))
         {
@@ -111,8 +109,19 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
 }
 TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linevalsplit)
 {
+    TableConfigData *data = new TableConfigData();
+    connect(data,&TableConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
+
+    data->setBigEndian(m_bigEndian);
+    data->setType(ConfigData::ARRAY);
+    data->setName(name);
+
     QString format = linevalsplit[3].trimmed();
-    unsigned int offset = linevalsplit[2].trimmed().toInt();
+    data->setXSize(format.mid(1,format.size()-2).split("x")[0].toInt());
+    data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
+    data->setOffset(linevalsplit[2].trimmed().toInt());
+    data->setDisplayDecimals(linevalsplit[9].toInt());
+
     QList<QPair<QString,double> > calclist;
     if (linevalsplit[5].trimmed().startsWith("."))
     {
@@ -130,65 +139,38 @@ TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linev
     {
         calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
     }
-    unsigned short elementsize = 0;
-    bool issigned = false;
-    bool isfloat = false;
+    data->setCalc(calclist);
+
+
     if (linevalsplit[1].trimmed() == "S16")
     {
-        elementsize = 2;
-        issigned = true;
+        data->setElementSize(2);
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U08")
     {
-        elementsize = 1;
-        issigned = false;
+        data->setElementSize(1);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U16")
     {
-        elementsize=2;
-        issigned=false;
+        data->setElementSize(2);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U32")
     {
-        elementsize=4;
-        issigned=false;
+        data->setElementSize(4);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "S32")
     {
-        elementsize=4;
-        issigned=true;
+        data->setElementSize(4);
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "F32")
     {
-        elementsize=4;
-        issigned=true;
-        isfloat=true;
-    }
-
-    TableConfigData *data = new TableConfigData();
-    data->setBigEndian(m_bigEndian);
-    connect(data,&TableConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
-    data->setType(ConfigData::ARRAY);
-    //It's a 3d array.
-    data->setCalc(calclist);
-    //data->setLocationId(pagenumint);
-    data->setXSize(format.mid(1,format.size()-2).split("x")[0].toInt());
-    data->setName(name);
-    data->setYSize(format.mid(1,format.size()-2).split("x")[1].toInt());
-    data->setOffset(offset);
-    data->setElementSize(elementsize);
-    data->setDisplayDecimals(linevalsplit[9].toInt());
-    if (isfloat)
-    {
+        data->setElementSize(4);
         data->setElementType(ConfigData::FLOAT_ELEMENT);
-    }
-    else if (issigned)
-    {
-        data->setElementType(ConfigData::SIGNED_ELEMENT);
-    }
-    else
-    {
-        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     return data;
 
@@ -197,8 +179,17 @@ TableConfigData *MSPComms::tableConfigFromIniLine(QString name,QStringList linev
 }
 ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linevalsplit)
 {
-    unsigned int offset = linevalsplit[2].trimmed().toInt();
+    ArrayConfigData *data = new ArrayConfigData();
+    data->setBigEndian(m_bigEndian);
+    connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
+    data->setName(name);
+    data->setType(ConfigData::ARRAY);
+    data->setDisplayDecimals(linevalsplit[9].toInt());
+
+    data->setOffset(linevalsplit[2].trimmed().toInt());
     QString format = linevalsplit[3].trimmed();
+    data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
+
     QList<QPair<QString,double> > calclist;
     if (linevalsplit[5].trimmed().startsWith("."))
     {
@@ -216,70 +207,42 @@ ArrayConfigData *MSPComms::arrayConfigFromIniLine(QString name,QStringList linev
     {
         calclist.append(QPair<QString,double>("add",linevalsplit[6].trimmed().toFloat()));
     }
-    unsigned short elementsize = 0;
-    bool issigned = false;
-    bool isfloat = false;
+    data->setCalc(calclist);
+
     if (linevalsplit[1].trimmed() == "S16")
     {
         elementsize = 2;
-        issigned = true;
+        data->setElementSize(2);
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U08")
     {
-        elementsize = 1;
-        issigned = false;
+        data->setElementSize(1);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U16")
     {
-        elementsize=2;
-        issigned=false;
+        data->setElementSize(2);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "U32")
     {
-        elementsize=4;
-        issigned=false;
+        data->setElementSize(4);
+        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "S32")
     {
         elementsize=4;
-        issigned=true;
+        data->setElementSize(4);
+        data->setElementType(ConfigData::SIGNED_ELEMENT);
     }
     else if (linevalsplit[1].trimmed() == "F32")
     {
-        elementsize=4;
-        issigned=true;
-        isfloat=true;
-    }
-
-    ArrayConfigData *data = new ArrayConfigData();
-    data->setBigEndian(m_bigEndian);
-    connect(data,&ArrayConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
-    data->setCalc(calclist);
-    data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
-    data->setName(name);
-            //data->setLocationId(pagenumint);
-    data->setType(ConfigData::ARRAY);
-    data->setOffset(offset);
-    data->setElementSize(elementsize);
-    data->setDisplayDecimals(linevalsplit[9].toInt());
-    if (isfloat)
-    {
+        data->setElementSize(4);
         data->setElementType(ConfigData::FLOAT_ELEMENT);
     }
-    else if (issigned)
-    {
-        data->setElementType(ConfigData::SIGNED_ELEMENT);
-    }
-    else
-    {
-        data->setElementType(ConfigData::UNSIGNED_ELEMENT);
-    }
 
-    data->setSize(format.mid(1,format.size()-2).trimmed().toInt());
     return data;
-    //data->setAxisMetaData(elementsize,array.scale,array.translate,issigned);
-    //m_2dTableData[linesplit[0].trimmed()] = data;
-    //m_arrayDataMap.insert(linesplit[0].trimmed(),data);
 }
 void MSPComms::loadIniFile(QFile *inifile)
 {
@@ -431,46 +394,28 @@ void MSPComms::loadIniFile(QFile *inifile)
                     }
                     else if (linesplit[0].trimmed() == "field")
                     {
-                        //qDebug() << "Line" << line;
-                        //if (linesplit[1].split(",").size() > 1) //We actually have a field
-                        //{
-                            //dialogmap[currentdialog].append(QPair<QString,QString>(linesplit[1].split(",")[0].replace("\"","").trimmed(),linesplit[1].split(",")[1].replace("\"","").trimmed()));
-                            DialogField field;
-                            //QStringList dialogfieldsplit = linesplit[1].split(",");
-                            //QStringList outlist;
-                            //QString current = "";
-                            //for (int i=0;i<dialogfieldsplit.size();i++)
-                            //{
-                            //	QString splitter = dialogfieldsplit[i];
-                            //	if (splitter.count("\"") == 1)
-                            //	{
-                            //		//Merge with the next one;
-//
-                            //	/}
-                            //}
-                            QStringList dialogfieldsplit = splitline(linesplit[1]);
-                            if (dialogfieldsplit.size() >= 1)
-                            {
-                                field.title = dialogfieldsplit[0].replace("\"","").trimmed();
-                            }
-                            else
-                            {
-                                //Nothing??
-                                qDebug() << "error in dialogfieldsplit";
-                            }
-                            if (dialogfieldsplit.size() >= 2)
-                            {
-                                //There is a variable
-                                field.variable = dialogfieldsplit[1].replace("\"","").trimmed();
-                            }
-                            if (dialogfieldsplit.size() >= 3)
-                            {
-                                //There is a condition
-                                field.condition = dialogfieldsplit[2].replace("\"","").trimmed();
-                            }
-                            currDialogFieldList.append(field);
-                        //}
-                        //qDebug() << "dLine";
+                        DialogField field;
+                        QStringList dialogfieldsplit = splitline(linesplit[1]);
+                        if (dialogfieldsplit.size() >= 1)
+                        {
+                            field.title = dialogfieldsplit[0].replace("\"","").trimmed();
+                        }
+                        else
+                        {
+                            //Nothing??
+                            qDebug() << "error in dialogfieldsplit";
+                        }
+                        if (dialogfieldsplit.size() >= 2)
+                        {
+                            //There is a variable
+                            field.variable = dialogfieldsplit[1].replace("\"","").trimmed();
+                        }
+                        if (dialogfieldsplit.size() >= 3)
+                        {
+                            //There is a condition
+                            field.condition = dialogfieldsplit[2].replace("\"","").trimmed();
+                        }
+                        currDialogFieldList.append(field);
                     }
                     else if (linesplit[0].trimmed() == "panel")
                     {
@@ -730,12 +675,7 @@ void MSPComms::loadIniFile(QFile *inifile)
 
                     pagenumint = pagenum.toInt()-1;
                     pagenum = QString::number(pagenumint);
-                    //QStringList split = pageIdent[pagenumint].split("\\");
                     int pagesize = pageSize[pagenumint];
-                    //bool ok = false;
-                    //QString pagestr = QString("0" + split[split.size()-1].replace("\"",""));
-                    //pagenumint = pagestr.toInt(&ok,16);
-                    //qDebug() << ok << pagenum << i.key().toInt() << pagestr;
                     QList<ConfigBlock> blocklist;
                 }
                 else
@@ -751,7 +691,6 @@ void MSPComms::loadIniFile(QFile *inifile)
                     //Page identifiers, these are important!
                     QString idents = line.trimmed().split("=")[1];
                     QStringList identsplit = idents.split(",");
-                    //pageIdent.append("");
                     for (int j=0;j<identsplit.size();j++)
                     {
                         pageIdent.append(identsplit[j].trimmed());
@@ -768,11 +707,8 @@ void MSPComms::loadIniFile(QFile *inifile)
                         pageint = sizesplit[j].trimmed().toInt();
                         pageSize.append(pageint);
                         m_pageInfoList[j].pageSize = pageint;
-                        //if (!m_pageBufferMap.contains(0))
-                        //{
-                            m_pageBufferMap[j] = QByteArray();
-                            m_pageBufferFilledMap[j] = 0;
-                        //}
+                        m_pageBufferMap[j] = QByteArray();
+                        m_pageBufferFilledMap[j] = 0;
                         m_pageBufferMap[j].resize(pageint);
                     }
                 }
@@ -839,10 +775,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                             ScalarConfigData *data = new ScalarConfigData();
                             data->setBigEndian(m_bigEndian);
                             connect(data,&ScalarConfigData::saveSignal,this,&MSPComms::memorySaveSlot);
-                            //qDebug() << linevalsplit[2].trimmed() << linevalsplit[4].trimmed();
                             data->setOffset(linevalsplit[2].trimmed().toInt());
-                            //if (linevalsplit[0].trimmed() == "scalar")
-                            //{
                             data->setType(ConfigData::VALUE);
                             QList<QPair<QString,double> > calclist;
                             if (linevalsplit[4].trimmed().startsWith("."))
@@ -900,26 +833,16 @@ void MSPComms::loadIniFile(QFile *inifile)
                                 data->setElementType(ConfigData::FLOAT_ELEMENT);
                                 data->setType(ConfigData::FLOAT);
                             }
-                            //scalarMap[linesplit[0].trimmed()] = scalar;
 
-
-                            //connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-                            //connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
                             data->setSize(1);
                             data->setName(linesplit[0].trimmed());
                             data->setPage(pagenum.toInt());
-                            //data->setLocationId(pagenumint);
-                            //m_configDataMap[linesplit[0].trimmed()] = data;
+
                             m_scalarDataMap[linesplit[0].trimmed()] = data;
                             m_configNameList.append(linesplit[0].trimmed());
-                            //pageMap[pagenum][linesplit[0].trimmed()] = scalar;
                         } //if (linevalsplit[0].trimmed() == "scalar")
                         else if (linevalsplit[0].trimmed() == "bits")
                         {
-
-                            //TSBPConfigData *data = new TSBPConfigData();
-                            //connect(data,SIGNAL(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)),this,SLOT(saveSingleData(unsigned short,QByteArray,unsigned short,unsigned short)));
-                            //connect(data,SIGNAL(pageBurnRequested(uint)),this,SLOT(pageBurnRequested(uint)));
                             unsigned int offset = linevalsplit[2].trimmed().toInt();
                             BitConfigData *data;
                             if (m_bitDataLocationMap.contains(offset))
@@ -943,8 +866,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                                 bitarray.append(linevalsplit[i].trimmed().replace("\"",""));
                             }
                             data->addBitField(linesplit[0].trimmed(),min,max,bitarray);
-                            //data->setEnumValues(bitarray);
-                            //data->setEnumBits(min,max);
+
                             data->setType(ConfigData::ENUM);
                             data->setOffset(offset);
                             if (linevalsplit[1].trimmed() == "S08")
@@ -994,8 +916,7 @@ void MSPComms::loadIniFile(QFile *inifile)
                             }
                             data->setName(linesplit[0].trimmed());
                             m_bitDataNameMap[linesplit[0].trimmed()] = data;
-                            //data->setLocationId(pagenumint);
-                            //m_configDataMap[linesplit[0].trimmed()] = data;
+
                             m_configNameList.append(linesplit[0].trimmed());
                         }
                         else if (linevalsplit[0].trimmed() == "array")
@@ -1160,15 +1081,9 @@ void MSPComms::loadIniFile(QFile *inifile)
     {
         int pagenum = i.key().toInt();
         qDebug() << "Page:" << pagenum;
-        //QStringList split = pageIdent[pagenum].split("\\");
         int pagesize = pageSize[pagenum];
-        //bool ok = false;
-        //QString pagestr = QString("0" + split[split.size()-1].replace("\"",""));
-        //pagenum = pagestr.toInt(&ok,16);
-        //qDebug() << ok << pagenum << i.key().toInt() << pagestr;
         QList<ConfigBlock> blocklist;
         m_pageSizeList.append(pagesize);
-        //m_pageReqStringList.append(pageActivate[pagenum]);
         for (QMap<QString,scalarclass>::const_iterator j = i.value().constBegin();j!=i.value().constEnd();j++)
         {
             TSBPConfigData *data = new TSBPConfigData();
@@ -1178,43 +1093,15 @@ void MSPComms::loadIniFile(QFile *inifile)
             data->setOffset(j.value().offset);
             data->setLocationId(pagenum);
             data->setType(ConfigData::VALUE);
-
-            //ConfigBlock b;
-            //b.setLocationId(pagenum);
-            //b.setElementSize(j.value().size);
-            //b.setSize(1);
-            //b.setName(j.key());
-            //b.setOffset(j.value().offset);
             QList<QPair<QString,double> > calclist;
             calclist.append(QPair<QString,double>("add",j.value().translate));
             calclist.append(QPair<QString,double>("mult",j.value().scale));
             data->setCalc(calclist);
-            //b.setCalc(calclist);
-            //qDebug() << "Type:" << j.value().type;
-            //qDebug() << "Page:" << i.key() << "Scalar:" << j.key() << j.value().offset << j.value().scale << j.value().translate;
-            //b.setType(j.value().type);
-            //configmap[j.key()] = b;
-            //blocklist.append(b);
-            //m_configDataMap[j.key()] = data;
             m_configNameList.append(j.key());
 
 
         }
         configmap[QString::number(pagenum)] = blocklist;
-    }
-    for (QMap<QString,QMap<QString,arrayclass> >::const_iterator i = pageArrayMap.constBegin();i!=pageArrayMap.constEnd();i++)
-    {
-        for (QMap<QString,arrayclass>::const_iterator j = i.value().constBegin();j!=i.value().constEnd();j++)
-        {
-            if (j.value().is2d)
-            {
-            }
-            else
-            {
-            }
-
-        }
-
     }
     //m_dsataDecoder->setDataDefinitions(dataLogMap);
     m_memoryMetaData->passConfigData(configmap);
@@ -1239,16 +1126,6 @@ void MSPComms::loadIniFile(QFile *inifile)
     }
     m_memoryMetaData->setMenuMetaData(menu);
     m_iniFileLoaded = true;
-    QByteArray pagereq;
-    pagereq.append("R");
-    //pagereq.append((char)0x0); // CANID
-    //pagereq.append((char)0x0); // TABLEID
-    //pagereq.append((char)0x0);
-    //pagereq.append((char)0x0);
-    //pagereq.append((char)0x4E);
-    //pagereq.append((char)0x20);
-    //interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
-
 }
 MSPComms::MSPComms(QObject *parent) : QObject(parent)
 {
@@ -1410,11 +1287,6 @@ void MSPComms::savePageTimerTick()
 
 }
 
-/*void MSPComms::passLogger(QsLogging::Logger *log)
-{
-    QsLogging::Logger::instance(log);
-    QLOG_DEBUG() << "Logging from the plugin!!!";
-}*/
 int MSPComms::startBenchTest(unsigned char eventspercycle, unsigned short numcycles, unsigned short ticksperevent, QVariantList pineventmask, QVariantList pinmode)
 {
     Q_UNUSED(eventspercycle)
@@ -1536,30 +1408,6 @@ void MSPComms::startInterrogation()
         interrogateTaskStart("Ecu Info",getFirmwareVersion());
         QByteArray pagereq;
         pagereq.append("R");
-        //pagereq.append((char)0x0); // CANID
-        //pagereq.append((char)0x0); // TABLEID
-        //pagereq.append((char)0x0);
-        //pagereq.append((char)0x0);
-        //pagereq.append((char)0x4E);
-        //pagereq.append((char)0x20);
-        //interrogateTaskStart("Location ID 1",requestPage(pagereq,288));
-        //interrogateTaskStart("Location ID 2",requestPage("P\002",64));
-        //interrogateTaskStart("Location ID 3",requestPage("P\003",288));
-        //interrogateTaskStart("Location ID 4",requestPage("P\004",64));
-        //interrogateTaskStart("Location ID 5",requestPage("P\005",288));
-        //interrogateTaskStart("Location ID 6",requestPage("P\006",64));
-        //interrogateTaskStart("Location ID 7",requestPage("P\007",64));
-        //interrogateTaskStart("Location ID 10",requestPage("P\010",160));
-        //interrogateTaskStart("Location ID 11",requestPage("P\011",192));
-        //m_interrogatePacketList.append(getFirmwareVersion());
-        //m_interrogatePacketList.append(getInterfaceVersion());
-        //m_interrogatePacketList.append(getCompilerVersion());
-        //m_interrogatePacketList.append(getDecoderName());
-        //m_interrogatePacketList.append(getFirmwareBuildDate());
-        //m_interrogatePacketList.append(getMaxPacketSize());
-        //m_interrogatePacketList.append(getOperatingSystem());
-        //m_interrogatePacketList.append(getLocationIdList(0x00,0x00));
-        //m_interrogateTotalCount=1;
     }
 }
 
@@ -1633,18 +1481,9 @@ void MSPComms::sendPacket(RequestClass req)
     {
         //Retrieve page!
         QByteArray pagereqstr = req.args.at(0).toByteArray(); //Page Name
-        //int offset = req.args.at(1).toInt(); //Size
-        //int size = req.args.at(2).toInt(); //Size
-        //qDebug() << "Sending page retrieve" << pagereqstr << offset << size;
         qDebug() << "Sending Page request:" << pagereqstr.toHex();
         qDebug() << "Sending Page request:" << pagereqstr;
         m_currentRequest = req;
-        //m_serialPort->requestPacket(pagename.toLocal8Bit(),0);
-        //m_serialPort->requestPacket(QString("V").toLocal8Bit(),size);
-        //pagereqstr.append(offset & 0xFF);
-        //pagereqstr.append((offset >> 8) & 0xFF);
-        //pagereqstr.append(size & 0xFF);
-        //pagereqstr.append((size >> 8) & 0xFF);
         uint32_t crc = Crc32_ComputeBuf(0,pagereqstr.data(),pagereqstr.size());
         qDebug() << "Pagestr:" << pagereqstr.toHex();
         QByteArray packet;
@@ -1655,8 +1494,6 @@ void MSPComms::sendPacket(RequestClass req)
         packet.append(crc >> 16);
         packet.append(crc >> 8);
         packet.append(crc >> 0);
-        //m_serialPort->requestPacket(packet,0);
-        //packet = m_serialPort->read(0)
         qDebug() << "Writing page req packet";
         if (m_connectionType == TCPSOCKET)
         {
@@ -1666,28 +1503,23 @@ void MSPComms::sendPacket(RequestClass req)
         {
             m_serialPort->write(packet);
         }
-        //m_serialPort->writePacket(QString().toLatin1());
     }
     else if (req.type == GET_FIRMWARE_VERSION)
     {
         qDebug() << "Getting firmware version";
         m_currentRequest = req;
-        //m_serialPort->requestPacket(QByteArray("H"),0);
-        //QByteArray req = m_commandStructure.queryCommand.toLatin1();
         QByteArray req = QByteArray("S"); // Hardcoded since it's in the spec PDF
         uint32_t crc = Crc32_ComputeBuf(0,req.data(),req.size());
         QByteArray packet;
         packet.append((char)0x0);
         packet.append((char)0x1);
         packet.append(req);
-        //packet.append((char)0x0);
         packet.append(crc >> 24);
         packet.append(crc >> 16);
         packet.append(crc >> 8);
         packet.append(crc >> 0);
         qDebug() << "Writing firmware version packet";
         qDebug() << packet.toHex();
-        //m_serialPort->requestPacket(packet,0);
         if (m_connectionType == TCPSOCKET)
         {
             m_tcpPort->write(packet);
@@ -1947,16 +1779,10 @@ void MSPComms::connectSerial(bool isserial,QString port,int baud,QString inifile
 
     m_serialPort = new QSerialPort();
 
-    //connect(serialPort,SIGNAL(packetReceived(QByteArray)),this,SLOT(parseEverything(QByteArray)));
-    //connect(m_serialPort,SIGNAL())
     connect(m_serialPort, &QSerialPort::readyRead, this, &MSPComms::handleReadyRead);
     connect(m_serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(parseBuffer(QByteArray)),Qt::QueuedConnection);
-    //connect(serialPort,SIGNAL(bytesReady(QByteArray)),this,SLOT(dataLogRead(QByteArray)));
     connect(m_serialPort,SIGNAL(connected()),this,SLOT(serialPortConnected()),Qt::QueuedConnection);
-    //connect(serialPort,SIGNAL(unableToConnect(QString)),this,SLOT(serialPortUnableToConnect(QString)));
-    //connect(serialPort,SIGNAL(error(QString)),this,SLOT(serialPortError(QString)));
-    //connect(serialPort,SIGNAL(disconnected()),this,SLOT(serialPortDisconnected()));
-    //m_serialPort->openPort(port,baud,false);
+
     m_serialPort->setBaudRate(baud);
     m_serialPort->setFlowControl(QSerialPort::NoFlowControl);
 
@@ -1973,28 +1799,11 @@ void MSPComms::connectSerial(bool isserial,QString port,int baud,QString inifile
 }
 void MSPComms::serialPortConnected()
 {
-    //m_serialPort->writePacket(QString("Q\r\n").toLatin1());
-    //getFirmwareVersion();
-//	m_waitingForPacketResponse =  true;
-//	m_serialPort->requestPacket(QByteArray("H"),20);
-//	this->sendPacket()
     m_state = 2;
     emit connected();
 }
 int MSPComms::requestPage(QByteArray pagereqstring,int length,int pageid)
 {
-/*    readbuf[5] = maxoffset >> 8; //Offset
-    readbuf[6] = 0; //Offset
-    readbuf[7] = 0 >> 8; //Length
-    readbuf[8] = maxoffset % 255; //Length
-    quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
-    readbuf[9] = crc >> 24;
-    readbuf[10] = crc >> 16;
-    readbuf[11] = crc >> 8;
-    readbuf[12] = crc >> 0;
-    m_serialPort.writeBytes(readbuf,13);
-*/
-    //QMutexLocker locker(&reqListMutex);
     for (int i=0;i<length;i+=255)
     {
         QByteArray nextreq = pagereqstring;
@@ -2045,7 +1854,6 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length,int pageid)
         {
             nextreq = nextreq.replace("\\$tsCanId",canid);
         }
-        //pagereqstring = nextreq.replace("\\$tsCanId",QByteArray());
         qDebug() << "PageReqString:" << nextreq.toHex();
         nextreq = nextreq.replace("%2o",offset).replace("%2c",size);
         qDebug() << "PageReqString:" << nextreq.toHex();
@@ -2308,20 +2116,6 @@ void MSPComms::parseBuffer(QByteArray data)
             {
                 for (QMap<int,QByteArray>::const_iterator page=m_pageBufferMap.constBegin();page!=m_pageBufferMap.constEnd();page++)
                 {
-                    /*for (QMap<QString,TSBPTable3DData*>::const_iterator i=m_3dTableData.constBegin();i!=m_3dTableData.constEnd();i++)
-                    {
-                        //if (i.value()->)
-                        i.value()->setData(0,false,m_pageBufferMap[0]);
-                    }
-                    for (QMap<QString,TSBPTable2DData*>::const_iterator i=m_2dTableData.constBegin();i!=m_2dTableData.constEnd();i++)
-                    {
-                        i.value()->setData(0,false,m_pageBufferMap[0]);
-                    }
-                    //QMap<QString,TSBPConfigData*> m_configDataMap;
-                    for (QMap<QString,TSBPConfigData*>::const_iterator i = m_configDataMap.constBegin();i!=m_configDataMap.constEnd();i++)
-                    {
-                        i.value()->setData(m_pageBufferMap[0]);
-                    }*/
                     for (QMap<QString,TableConfigData*>::const_iterator i=m_tableDataMap.constBegin();i!=m_tableDataMap.constEnd();i++)
                     {
                         if (i.value()->page() == page.key())
@@ -2377,80 +2171,7 @@ void MSPComms::parseBuffer(QByteArray data)
 
             pagenum.remove(0,i);
             //int locid = pagenum[0].toLatin1();
-            int locid = 0;
-//	QMap<QString,TSBPTable3DData*> m_3dTableData;
-            /*
-            for (QMap<QString,TSBPTable3DData*>::const_iterator i=m_3dTableData.constBegin();i!=m_3dTableData.constEnd();i++)
-            {
-                i.value()->setData(0,false,data);
-            }
 
-
-            //qDebug() << "Packet:" << locid << "retrieved. Size:" << finalbuf.size() << "expected:" << maxoffset;;
-            //emit flashBlockRetrieved(locid,QByteArray(),finalbuf);
-//			m_pageArrayMap
-
-            if (m_pageTo2DTableList.contains(locid))
-            {
-                for (int i=0;i<m_pageTo2DTableList.value(locid).size();i++)
-                {
-                    if (m_pageTo2DTableList.value(locid)[i]->axisPage() == locid)
-                    {
-                        m_pageTo2DTableList.value(locid)[i]->setAxis(data);
-                    }
-                    else
-                    {
-                        qDebug() << "Bad";
-                    }
-                    if (m_pageTo2DTableList.value(locid)[i]->valuePage() == locid)
-                    {
-                        m_pageTo2DTableList.value(locid)[i]->setValues(data);
-                    }
-                    else
-                    {
-                        qDebug() << "Bad";
-                    }
-                }
-            }
-            if (m_pageTo3DTableList.contains(locid))
-            {
-                for (int i=0;i<m_pageTo3DTableList.value(locid).size();i++)
-                {
-                    if (m_pageTo3DTableList.value(locid)[i]->xAxisPage() == locid)
-                    {
-                        m_pageTo3DTableList.value(locid)[i]->setXAxis(data);
-                    }
-                    if (m_pageTo3DTableList.value(locid)[i]->yAxisPage() == locid)
-                    {
-                        m_pageTo3DTableList.value(locid)[i]->setYAxis(data);
-                    }
-                    if (m_pageTo3DTableList.value(locid)[i]->valuePage() == locid)
-                    {
-                        m_pageTo3DTableList.value(locid)[i]->setValues(data);
-                    }
-                    else
-                    {
-                        qDebug() << "Bad";
-                    }
-                }
-            }*/
-            /*if (m_interrogateList.contains(m_privReqList[i].sequencenumber))
-            {
-                emit interrogateTaskSucceed(m_privReqList[i].sequencenumber);
-                m_interrogateList.removeOne(m_privReqList[i].sequencenumber);
-                if (m_interrogateList.size() == 0)
-                {
-                    emit interrogationComplete();
-                }
-            }*/
-            /*for (int j=0;j<m_configNameList.size();j++)
-            {
-                if (m_configDataMap[m_configNameList[j]]->locationId() == locid)
-                {
-                    //We're on the current page
-                    m_configDataMap[m_configNameList[j]]->setData(data);
-                }
-            }*/
         }
         m_waitingForPacketResponse = false;
     }
@@ -2637,25 +2358,13 @@ QByteArray MSPComms::readPacket(QSerialPort *port)
     //currentdataread = port->readBytes(&newbuf3,newlen,1000);
     if (currentdataread <= 0)
     {
-        //qDebug() << "Error in read" << currentdataread << port->serialBufferSize();
-        /*if (port->serialBufferSize() > 0)
-        {
-//			port->readBytes(&newbuf3,port->serialBufferSize());
-            qDebug() << QString(newbuf3);
-        }*/
         return QByteArray();
     }
     packet.append(newbuf3);
 
-    //if (datalenread == 0)
-    //{
-        QByteArray newbuf6;
-        //int read = port->readBytes(&newbuf6,1); //Read the single code
-        //if (read)
-        //	qDebug() << "SCode:" << QString::number(newbuf6[0]);
-        //else
-        //	qDebug() << "Timeout on SCode";
-    //}
+
+    QByteArray newbuf6;
+
     qDebug() << "Code:" << QString::number((unsigned char)packet[0],16) << datalenread << newlen;
     QByteArray crcbytes;
     datalenread = 0;
@@ -2702,569 +2411,10 @@ QByteArray MSPComms::readPacket(QSerialPort *port)
 }
 void MSPComms::run()
 {
-    //unsigned char reqBuf[7];
-    //reqBuf[0] = 0;
-    //reqBuf[1] = 1;
-    //dsreqBuf[0] = 'R';
-    //reqBuf[2] = 'A';
-    //quint32 crc = Crc32_ComputeBuf(0,reqBuf + 2,1);
-    //reqBuf[3] = crc >> 24;
-    //reqBuf[4] = crc >> 16;
-    //reqBuf[5] = crc >> 8;
-    //reqBuf[6] = crc >> 0;
-
     unsigned int timercounter = 0;
     while (true)
     {
         timercounter++;
-        /*if (timercounter > 100)
-        {
-            timercounter = 0;
-            //Once per second, send out a random payload.
-            QByteArray payload;
-            for (int i=0;i<250;i++)
-            {
-                payload.append(rand() % 255);
-            }
-            //emit dataLogPayloadReceived(QByteArray(),payload);
-        }*/
-        /*reqListMutex.lock();
-        for (int i=0;i<m_reqList.size();i++)
-        {
-            m_privReqList.append(m_reqList[i]);
-        }
-        m_reqList.clear();
-        reqListMutex.unlock();
-        for (int i=0;i<m_privReqList.size();i++)
-        {
-            if (m_privReqList[i].type == GET_INTERFACE_VERSION)
-            {
-//				msleep(10);
-                emit interfaceVersion("TSBP Simulator");
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == SERIAL_CONNECT)
-            {
-
-                QString port = m_privReqList[i].args[0].toString();
-                //int baud = m_privReqList[i].args[1].toInt();
-                int openerror = m_serialPort.openPort(port,115200,false);
-                qDebug() << "Opened:" << openerror;
-                if (openerror < 0)
-                {
-                    emit disconnected();
-                    return;
-                }
-                m_connected = true;
-                unsigned char buf[200];
-                buf[0] = 'Q';
-                    m_serialPort.flush();
-                    m_serialPort.writeBytes(buf,1);
-//				msleep(1000);
-                QByteArray newbuf;
-                int count = m_serialPort.readBytes(&newbuf,20,500);
-                    qDebug() << "Version size:" << count;
-                    QString verstr = "";
-                    for (int i=0;i<count;i++)
-                    {
-                    verstr += QString::number(newbuf[i],16) + ",";
-                    }
-                    qDebug() << verstr;
-                qDebug() << "Version:" << newbuf;
-                QMap<QString,QString> m_interrogationData;
-                m_interrogationData["version"] = newbuf;
-                emit interrogationData(m_interrogationData);
-
-                emit connected();
-                for (QMap<QString,QList<ConfigBlock> >::const_iterator j=m_memoryMetaData->configMetaData().constBegin(); j!=m_memoryMetaData->configMetaData().constEnd();j++)
-                {
-                    int task = retrieveBlockFromFlash(j.key().toInt(),0,0);
-                    qDebug() << "Requesting block:" << j.key();
-                    emit interrogateTaskStart(QString("Flash Location ") + j.key(),task);
-                    m_interrogateList.append(task);
-                }
-
-                //emit interrogationComplete();
-
-                //m_memoryMetaData->configMetaData()
-                */
-                /*for (QMap<QString,QList<ConfigBlock> >::const_iterator j=m_memoryMetaData->configMetaData().constBegin(); j!=m_memoryMetaData->configMetaData().constEnd();j++)
-                {
-                    qDebug() << "Getting memory for:" << j.key();
-                    unsigned short maxoffset = 0;
-                    for (int k=0;k<j.value().size();k++)
-                    {
-                        ConfigBlock b = j.value()[k];
-                        b.locationId();
-                        b.offset();
-                        b.size();
-                        if (b.offset() + b.size() > maxoffset)
-                        {
-                            maxoffset = b.offset() + b.size();
-                        }
-                    }
-                    QByteArray finalbuf;
-                    if (maxoffset > 255)
-                    {
-                        for (int k=0;k<maxoffset/255;k++)
-                        {
-                            unsigned char readbuf[13];
-                            readbuf[0] = 0;
-                            readbuf[1] = 7;
-                            readbuf[2]  = 'r';
-                            readbuf[3] = j.key().toInt() >> 8; //Page
-                            readbuf[4] = j.key().toInt(); //Page
-                            readbuf[5] = k; //Offset
-                            readbuf[6] = 0; //Offset
-                            readbuf[7] = 0; //Length
-                            readbuf[8] = 255; //Length
-                            quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
-                            readbuf[9] = crc >> 24;
-                            readbuf[10] = crc >> 16;
-                            readbuf[11] = crc >> 8;
-                            readbuf[12] = crc >> 0;
-                            m_serialPort.writeBytes(readbuf,13);
-                            QByteArray packet = readPacket(&m_serialPort);
-                            qDebug() << "Reading:" << "Size:" << 255 << "Offset:" << (k << 8) << "Packet:" << packet.size();
-                            finalbuf.append(packet);
-                        }
-                    }
-
-                    unsigned char readbuf[13];
-                    readbuf[0] = 0;
-                    readbuf[1] = 7;
-                    readbuf[2]  = 'r';
-                    readbuf[3] = j.key().toInt() >> 8; //Page
-                    readbuf[4] = j.key().toInt(); //Page
-                    readbuf[5] = maxoffset >> 8; //Offset
-                    readbuf[6] = 0; //Offset
-                    readbuf[7] = 0 >> 8; //Length
-                    readbuf[8] = maxoffset % 255; //Length
-                    quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
-                    readbuf[9] = crc >> 24;
-                    readbuf[10] = crc >> 16;
-                    readbuf[11] = crc >> 8;
-                    readbuf[12] = crc >> 0;
-                    m_serialPort.writeBytes(readbuf,13);
-
-                    QByteArray packet = readPacket(&m_serialPort);
-                    finalbuf.append(packet);
-                    qDebug() << "Reading:" << "Size:" << maxoffset % 255 << "Offset:" << ((maxoffset >> 8) << 8) << "Packet:" << packet.size();
-
-
-                    //finalbuf Is your final packet for that page.
-
-
-
-                    j++;
-                }*/
-/*
-            }
-            else if (m_privReqList[i].type == GET_FIRMWARE_VERSION)
-            {
-//				usleep(10000);
-                emit firmwareVersion("0.0.1");
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_MAX_PACKET_SIZE)
-            {
-                //usleep(10000);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_LOCATION_ID_LIST)
-            {
-                //usleep(10000);
-                QList<unsigned short> idlists;*/
-                /*for (QMap<QString,QMap<QString,scalarclass> >::const_iterator j = pageMap.constBegin();j!=pageMap.constEnd();j++)
-                {
-                    idlists.append(j.key().toInt());
-                    for (QMap<QString,scalarclass>::const_iterator j = i.value().constBegin();j!=i.value().constEnd();j++)
-                    {
-                        qDebug() << "Page:" << i.key() << "Scalar:" << j.key() << j.value().offset << j.value().scale << j.value().translate;
-                    }
-                }*//*
-                if (m_interrogateInProgress)
-                {
-
-                }
-                emit locationIdList(idlists);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_DECODER_NAME)
-            {
-                //usleep(10000);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_FIRMWARE_BUILD_DATE)
-            {
-                //usleep(10000);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_COMPILER_VERSION)
-            {
-                //usleep(10000);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_OPERATING_SYSTEM)
-            {
-                //usleep(10000);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == GET_LOCATION_ID_INFO)
-            {
-                //usleep(10000);
-                unsigned short locid = m_privReqList[i].args[0].toInt();
-                //void locationIdInfo(unsigned short locationid,MemoryLocationInfo info);
-                MemoryLocationInfo info;
-                info.isRam = false;
-                info.isFlash = true;
-                info.locationid = locid;
-                info.size = 1024;
-                info.type = DATA_CONFIG;
-                emit locationIdInfo(locid,info);
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == UPDATE_BLOCK_IN_FLASH)
-            {
-
-                unsigned short locid = m_privReqList[i].args[0].toInt();
-                unsigned short offset = m_privReqList[i].args[1].toInt();
-                unsigned short size = m_privReqList[i].args[2].toInt();
-                qDebug() << "Writing to page" << locid << "Of offset" << offset << "Size" << size;
-                QByteArray bytes = m_privReqList[i].args[3].toByteArray();
-                qDebug() << "True Size:" << bytes.size();
-                QByteArray req;
-                req.append('w');
-                req.append((char)0);
-                req.append(locid);
-                req.append((char)((offset >> 8) & 0xFF));
-                req.append(offset & 0xFF);
-                req.append((char)((size >> 8) & 0xFF));
-                req.append(size & 0xFF);
-                req.append(bytes);
-                for (int j=0;j<req.size();j++)
-                {
-                    m_serialPort.writeBytes(req.mid(j,1));
-                    //msleep(1);
-                }
-                req.clear();
-                //msleep(100);
-            }
-            else if (m_privReqList[i].type == BURN_BLOCK_FROM_RAM_TO_FLASH)
-            {
-                unsigned short page = m_privReqList[i].args[0].toInt();
-                QByteArray req;
-                req.append('b');
-                req.append((char)0);
-                req.append(page);
-                for (int j=0;j<req.size();j++)
-                {
-                    m_serialPort.writeBytes(req.mid(j,1));
-                    //msleep(1);
-                }
-                //msleep(500);
-            }
-            else if (m_privReqList[i].type == RETRIEVE_BLOCK_IN_RAM)
-            {
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-            else if (m_privReqList[i].type == RETRIEVE_BLOCK_IN_FLASH)
-            {
-                int current = -1;
-                //void flashBlockRetrieved(unsigned short locationid,QByteArray header,QByteArray payload);
-                //Header can be mepty, payload should be the entire block of memory.
-                unsigned short locid = m_privReqList[i].args[0].toInt();
-                //if (//m_memoryMetaData->configMetaData())
-                if (m_memoryMetaData->hasConfigMetaData(QString::number(locid)))
-                {
-                    QList<ConfigBlock> blocklist = m_memoryMetaData->getConfigMetaData(QString::number(locid));
-                    qDebug() << "Getting memory for:" << QString::number(locid);
-                    unsigned short maxoffset = 0;
-                    for (int k=0;k<blocklist.size();k++)
-                    {
-                        ConfigBlock b = blocklist[k];
-                        b.locationId();
-                        b.offset();
-                        b.size();
-                        if (b.offset() + b.elementSize() > maxoffset)
-                        {
-                            maxoffset = b.offset() + b.elementSize();
-                        }
-                    }
-                    qDebug() << "Expected max:" << maxoffset;
-                    qDebug() << "Actual Max:" << m_pageSizeMap[locid];
-                    maxoffset = m_pageSizeMap[locid];
-                    QByteArray finalbuf;
-                    unsigned short curroffset = 0;
-                    int tries = 0;
-                    bool failure = false;
-                    if (maxoffset > 255)
-                    {
-                        while (maxoffset - curroffset > 255 && tries < 5)
-                        {*/
-                            /*unsigned char readbuf[13];
-                            readbuf[0] = 0;
-                            readbuf[1] = 7;
-                            readbuf[2]  = 'r';
-                            readbuf[3] = locid >> 8; //Page
-                            readbuf[4] = locid; //Page
-                            readbuf[5] = curroffset >> 8; //Offset
-                            readbuf[6] = curroffset; //Offset
-                            readbuf[7] = 0; //Length
-                            readbuf[8] = 255; //Length
-                            quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
-                            readbuf[9] = crc >> 24;
-                            readbuf[10] = crc >> 16;
-                            readbuf[11] = crc >> 8;
-                            readbuf[12] = crc >> 0;*//*
-                            //m_serialPort.writeBytes(readbuf,13);
-                            unsigned char readbuf[13];
-                            readbuf[0] = 'r';
-                            readbuf[1] = 0;
-                            readbuf[2] = locid;
-                            //msleep(1000);
-                            m_serialPort.writeBytes(readbuf,3);
-                            if (current != locid)
-                            {
-//								msleep(400);
-                                current = locid;
-                            }
-                            readbuf[0] = curroffset >> 8;
-                            readbuf[1] = curroffset;
-                            readbuf[2] = 0;
-                            readbuf[3] = 255;
-                            m_serialPort.writeBytes(readbuf,4);
-                            //msleep(2000);
-                            //QByteArray packet = readPacket(&m_serialPort);
-                            QByteArray packet;
-                            int rcvd = m_serialPort.readBytes(&packet,255,500);
-                            qDebug() << "Reading:" << "Size:" << 255 << "Offset:" <<  curroffset << "Packet:" << packet.size() << "Got" << rcvd;
-                            if (rcvd == 255)
-                            {
-                                tries = 0;
-                            }
-                            else
-                            {
-                                tries++;
-                            }
-                            curroffset += packet.size();
-                            finalbuf.append(packet);
-                        }
-                        if (maxoffset - curroffset > 255)
-                        {
-                            failure = true;
-                        }
-                        qDebug() << "Done with major offset";
-                    }
-                    //emit commandSuccessful(m_privReqList[i].sequencenumber);
-
-                    /*unsigned char readbuf[13];
-                    readbuf[0] = 0;
-                    readbuf[1] = 7;
-                    readbuf[2]  = 'r';
-                    readbuf[3] = locid >> 8; //Page
-                    readbuf[4] = locid; //Page
-                    readbuf[5] = curroffset >> 8; //Offset
-                    readbuf[6] = curroffset; //Offset
-                    readbuf[7] = 0; //Length
-                    readbuf[8] = maxoffset - curroffset; //Length
-                    quint32 crc = Crc32_ComputeBuf(0,readbuf + 2,7);
-                    readbuf[9] = crc >> 24;
-                    readbuf[10] = crc >> 16;
-                    readbuf[11] = crc >> 8;
-                    readbuf[12] = crc >> 0;
-                    m_serialPort.writeBytes(readbuf,13);*//*
-                    if (!failure)
-                    {
-                        unsigned char readbuf[13];
-                        readbuf[0] = 'r';
-                        readbuf[1] = 0;
-                        readbuf[2] = locid;
-                        m_serialPort.writeBytes(readbuf,3);
-                        if (current != locid)
-                        {
-//							msleep(400);
-                            current = locid;
-                        }
-                        readbuf[0] = curroffset >> 8;
-                        readbuf[1] = curroffset;
-                        readbuf[2] = 0;
-                        readbuf[3] = maxoffset - curroffset;
-                        m_serialPort.writeBytes(readbuf,4);
-
-                        //QByteArray packet = readPacket(&m_serialPort);
-                        QByteArray packet;
-                        int rcvd = m_serialPort.readBytes(&packet,maxoffset - curroffset,500);
-                        finalbuf.append(packet);
-                        qDebug() << "Reading:" << "Size:" << maxoffset - curroffset << "Offset:" << curroffset << "Packet:" << packet.size() << "Got" << rcvd;
-
-
-                        //finalbuf Is your final packet for that page.
-                        qDebug() << "Packet:" << locid << "retrieved. Size:" << finalbuf.size() << "expected:" << maxoffset;;
-                        emit flashBlockRetrieved(locid,QByteArray(),finalbuf);
-
-                        if (m_pageTo2DTableList.contains(locid))
-                        {
-                            for (int i=0;i<m_pageTo2DTableList.value(locid).size();i++)
-                            {
-                                if (m_pageTo2DTableList.value(locid)[i]->axisPage() == locid)
-                                {
-                                    m_pageTo2DTableList.value(locid)[i]->setAxis(finalbuf);
-                                }
-                                else
-                                {
-                                    qDebug() << "Bad";
-                                }
-                                if (m_pageTo2DTableList.value(locid)[i]->valuePage() == locid)
-                                {
-                                    m_pageTo2DTableList.value(locid)[i]->setValues(finalbuf);
-                                }
-                                else
-                                {
-                                    qDebug() << "Bad";
-                                }
-                            }
-                        }
-                        if (m_pageTo3DTableList.contains(locid))
-                        {
-                            for (int i=0;i<m_pageTo3DTableList.value(locid).size();i++)
-                            {
-                                if (m_pageTo3DTableList.value(locid)[i]->xAxisPage() == locid)
-                                {
-                                    m_pageTo3DTableList.value(locid)[i]->setXAxis(finalbuf);
-                                }
-                                if (m_pageTo3DTableList.value(locid)[i]->yAxisPage() == locid)
-                                {
-                                    m_pageTo3DTableList.value(locid)[i]->setYAxis(finalbuf);
-                                }
-                                if (m_pageTo3DTableList.value(locid)[i]->valuePage() == locid)
-                                {
-                                    m_pageTo3DTableList.value(locid)[i]->setValues(finalbuf);
-                                }
-                                else
-                                {
-                                    qDebug() << "Bad";
-                                }
-                            }
-                        }
-                        if (m_interrogateList.contains(m_privReqList[i].sequencenumber))
-                        {
-                            emit interrogateTaskSucceed(m_privReqList[i].sequencenumber);
-                            m_interrogateList.removeOne(m_privReqList[i].sequencenumber);
-                            if (m_interrogateList.size() == 0)
-                            {
-                                emit interrogationComplete();
-                            }
-                        }
-                        for (int j=0;j<m_configNameList.size();j++)
-                        {
-                            if (m_configDataMap[m_configNameList[j]]->locationId() == locid)
-                            {
-                                //We're on the current page
-                                m_configDataMap[m_configNameList[j]]->setData(finalbuf);
-                            }
-                        }
-                    }
-                    else
-                    {
-                        emit commandFailed(m_privReqList[i].sequencenumber,0xFF00FF);
-                    }
-                }
-                emit commandSuccessful(m_privReqList[i].sequencenumber);
-            }
-
-        }
-        m_privReqList.clear();
-        //Before we sleep, lets send and recieve.
-
-        if (m_connected)
-        {
-            //qDebug() << "Writing:";// << port.writeBytes(buf,7);
-            m_serialPort.writeBytes(QByteArray().append('A'));
-        //usleep(13000);
-        //QByteArray reply = readPacket(&m_serialPort);
-        QByteArray reply;
-        int replybytes = m_serialPort.readBytes(&reply,169,5000); //MS2 returns 169
-        //m_serialPort.readBytes(&reply,19,5000);
-        //m_serialPort.readUntilEmpty();
-        if (reply.size() > 0)
-        {
-            emit dataLogPayloadReceived(reply);
-            //qDebug() << "Reply:" << reply.size();
-        }
-        }
-        if (!m_threadRun)
-        {
-            m_serialPort.closePort();
-            return;
-        }
-
-//		usleep(5000); //Sleep to avoid CPU spinning
-*/
-    }
-    /*
-    emit connected();
-    SerialPort port;
-    int openerror = port.openPort("/dev/ttyACM0",115200,false);
-    qDebug() << "Opened:" << openerror;
-    if (openerror < 0)
-    {
         return;
     }
-
-    unsigned char buf[1024];
-
-    bool makenextwrite = true;
-    int looptime = 0;
-    unsigned int packetnum = 0;
-
-    buf[0] = 'Q';
-    port.flush();
-    port.writeBytes(buf,1);
-    usleep(1000000);
-    QByteArray newbuf;
-    int count = port.readBytes(&newbuf,200);
-    qDebug() << "Version size:" << count;
-    QString verstr = "";
-    for (int i=0;i<count;i++)
-    {
-        verstr += QString::number(buf[i],16) + ",";
-    }
-    qDebug() << verstr;
-    qDebug() << "Version:" << QString::fromAscii((const char*)buf+count-20,19);
-
-    buf[0] = 0;
-    buf[1] = 7;
-    buf[2]  = 'r';
-    buf[3] = 0; //Page
-    buf[4] = 1; //Page
-    buf[5] = 0; //Offset
-    buf[6] = 0; //Offset
-    buf[7] = 0; //Length
-    buf[8] = 0xFF; //Length
-
-    while (true)
-    {
-        if (makenextwrite)
-        {
-            buf[0] = 0;
-            buf[1] = 1;
-            buf[2] = 'A';
-            quint32 crc = Crc32_ComputeBuf(0,buf + 2,1);
-            buf[3] = crc >> 24;
-            buf[4] = crc >> 16;
-            buf[5] = crc >> 8;
-            buf[6] = crc >> 0;
-            //qDebug() << "Writing:" << port.writeBytes(buf,7);
-            port.writeBytes(buf,7);
-            //usleep(13000);
-            makenextwrite = true;
-        }
-        QByteArray reply = readPacket(&port);
-        if (reply.size() > 0)
-        {
-            emit dataLogPayloadReceived(QByteArray(),reply);
-        }
-        int stopper = 1;
-    }*/
 }
