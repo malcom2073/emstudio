@@ -200,6 +200,7 @@ bool TSBPConfigData::setValue(int index,QVariant value)
     QVariantList varlist = m_value.toList();
     varlist[index] = value;
     m_value = varlist;
+    return true;
 }
 void TSBPConfigData::setValue(QVariant value)
 {
