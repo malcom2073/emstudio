@@ -1852,6 +1852,11 @@ int MSPComms::requestPage(QByteArray pagereqstring,int length,int pageid)
         {
             nextreq = nextreq.replace("\\$tsCanId",canid);
         }
+        if (nextreq.contains("%2i"))
+        {
+            QString ident = convertString(m_pageInfoList[pageid].pageIdentifier).replace("\\$tsCanId",canid);
+            nextreq = nextreq.replace("%2i",ident.toLatin1());
+        }
         qDebug() << "PageReqString:" << nextreq.toHex();
         nextreq = nextreq.replace("%2o",offset).replace("%2c",size);
         qDebug() << "PageReqString:" << nextreq.toHex();
@@ -1919,7 +1924,7 @@ void MSPComms::handleReadyRead()
         buffer = m_serialPort->readAll();
     }
     m_serialPortBuffer.append(buffer);
-    //qDebug() << "Incoming data from serial port:" << buffer.size() << "Total:" << m_serialPortBuffer.size();
+    qDebug() << "Incoming data from serial port:" << buffer.size() << "Total:" << m_serialPortBuffer.size();
     bool resend = false;
     while (true)
     {
