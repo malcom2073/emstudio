@@ -4,7 +4,7 @@ Written by Michael Carpenter (malcom2073@gmail.com), and licensed under MIT.
 
 ### Overview:
 
-EMStudio is an open source tuning application for engines. It currently supports rusEFI, however it may be compatible with other ms.ini style systems.
+EMStudio is an open source tuning application for engines. It currently directly supports rusEFI, however best effort is made to ensure it stays in-spec with the base INI format, and thus maintain compatability with Speeduino and Megasquirts itself.
 
 ### Binaries:
 
