@@ -205,6 +205,7 @@ private:
     TSBPMemoryMetaData *m_memoryMetaData;
     bool m_connected;
     bool m_interrogateInProgress;
+    bool m_interrogateComplete;
     QList<int> m_interrogateList;
     QList<int> m_pageSizeList;
     QList<int> m_pageList;
@@ -273,6 +274,7 @@ signals:
 
 private slots:
     void fileDownloaded(QFile *file);
+    void fileDownloadFailed();
 
 
     void handleReadyRead();

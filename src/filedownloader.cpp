@@ -16,6 +16,19 @@ FileDownloader::FileDownloader()
 }
 void FileDownloader::replyReady(QNetworkReply* reply)
 {
+    QVariant status_code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+    if (!status_code.isValid())
+    {
+        emit fileDownloadFailed();
+        return;
+    }
+    if (status_code.toInt() != 200)
+    {
+        //Error getting file
+        qDebug() << "Error downloading file! Return code:" << status_code.toInt();
+        emit fileDownloadFailed();
+        return;
+    }
     QStringList strsplit = m_destPath.split("/");
     QString rawfilename = strsplit[strsplit.length()-1];
     qDebug() << "File Downloaded!" <<QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename;
@@ -34,6 +47,7 @@ void FileDownloader::downloadFile(QString url,QString destpath)
     if (QFile::exists(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename))
     {
         QFile *file = new QFile(QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename);
+        qDebug() << "File exists:" << QStandardPaths::writableLocation(QStandardPaths::CacheLocation) + "/" + rawfilename;
         emit fileDownloaded(file);
         return;
     }

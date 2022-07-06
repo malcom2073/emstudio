@@ -14,6 +14,7 @@ public:
     void downloadFile(QString url,QString destpath);
 signals:
     void fileDownloaded(QFile *file);
+    void fileDownloadFailed();
 private slots:
     void replyReady(QNetworkReply* pReply);
 private:

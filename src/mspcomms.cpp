@@ -18,7 +18,7 @@
 #include <QMessageBox>
 #include <QRegularExpression>
 #include <QThread>
-
+#include <QFileDialog>
 QString convertString(QString input)
 {
     QRegularExpression myregex("\\\\[xX][0-9a-fA-F]+");
@@ -1138,6 +1138,7 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     qRegisterMetaType<QList<unsigned short> >("QList<unsigned short>");
     currentPacketNum=1;
     m_interrogateInProgress = false;
+    m_interrogateComplete = false;
     QTimer *timer = new QTimer();
     connect(timer,SIGNAL(timeout()),this,SLOT(packetCounter()));
     timer->start(10000);
@@ -1148,6 +1149,8 @@ MSPComms::MSPComms(QObject *parent) : QObject(parent)
     connect(savePageTimer,SIGNAL(timeout()),this,SLOT(savePageTimerTick()));
 
     connect(&m_fileDownloader,&FileDownloader::fileDownloaded,this,&MSPComms::fileDownloaded);
+    connect(&m_fileDownloader,&FileDownloader::fileDownloadFailed,this,&MSPComms::fileDownloadFailed);
+
 
 }
 int MSPComms::sendBurn()
@@ -1792,6 +1795,10 @@ void MSPComms::connectSerial(bool isserial,QString port,int baud,QString inifile
     }
     m_serialPort->setTextModeEnabled(false);
     m_serialPort->setBreakEnabled(false);
+    m_serialPort->setDataTerminalReady(false);
+    QThread::msleep(500);
+    m_serialPort->setDataTerminalReady(true);
+    QThread::msleep(500);
     serialPortConnected();
 
 }
@@ -1901,7 +1908,10 @@ void MSPComms::triggerNextSend()
         }
         else
         {
-            getDataReq();
+            if (m_interrogateComplete)
+            {
+                getDataReq();
+            }
             //No requests, create a datalog request
         }
     }
@@ -1980,6 +1990,21 @@ void MSPComms::fileDownloaded(QFile *file)
     startInterrogation();
 
 }
+void MSPComms::fileDownloadFailed()
+{
+    if (QMessageBox::question(0,"Error","Unable to download ini file automatically. Do you wish to manually select it?") == QMessageBox::Yes)
+    {
+        QString filenamestr = QFileDialog::getOpenFileName(0,"Find INI file");
+        if (filenamestr.isEmpty())
+        {
+            return;
+        }
+        QFile *file = new QFile(filenamestr);
+        loadIniFile(file);
+        delete file;
+        startInterrogation();
+    }
+}
 void MSPComms::parseBuffer(QByteArray data)
 {
     //Ignore data, everything is in m_serialPortBuffer
@@ -2038,6 +2063,31 @@ void MSPComms::parseBuffer(QByteArray data)
                 {
                     m_interrogateInProgress = false;
                     m_fileDownloader.downloadFile(path,"");
+                }
+                else if (m_iniFileLoaded)
+                {
+                    for (int i=0;i<m_pageInfoList.size();i++)
+                    {
+                        interrogateTaskStart("Location ID " + QString::number(i),requestPage(m_pageInfoList[i].pageReadCommand.toLatin1(),m_pageInfoList[i].pageSize,i));
+                    }
+                }
+            }
+            else if (versionstr.contains("Speeduino"))
+            {
+                emit interrogateTaskSucceed(m_currentRequest.sequencenumber);
+                if (m_iniFile != "" && !m_iniFileLoaded)
+                {
+                    QFile *file = new QFile(m_iniFile);
+                    loadIniFile(file);
+                    delete file;
+                    m_interrogateInProgress = false;
+                    startInterrogation();
+                }
+                else if (!m_iniFileLoaded)
+                {
+                    m_interrogateInProgress = false;
+                    QString fwversion = versionstr.split(" ")[1];
+                    m_fileDownloader.downloadFile(QString("https://speeduino.com/fw/") + fwversion + ".ini","");
                 }
                 else if (m_iniFileLoaded)
                 {
@@ -2162,7 +2212,8 @@ void MSPComms::parseBuffer(QByteArray data)
                     connect(timer,SIGNAL(timeout()),this,SLOT(getConsoleTextTimerTimeout()));
                     timer->start(1000);
                 }
-
+                m_interrogateComplete = true;
+                m_interrogateInProgress = false;
                 emit interrogationComplete();
             }
             QString pagenum = m_currentRequest.args.at(0).toString();
