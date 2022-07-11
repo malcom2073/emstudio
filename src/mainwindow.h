@@ -34,5 +34,6 @@ private slots:
     void interrogateTaskStart(QString name,int seq);
     void interrogationCompleted();
     void dataLogPayloadDecoded(QVariantMap data);
+    void logFilePosChangeReq(int pos);
 };
 #endif // MAINWINDOW_H

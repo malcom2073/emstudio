@@ -12,6 +12,7 @@
 #include "connectiondialog.h"
 #include "interrogateprogressview.h"
 #include "consoletextview.h"
+#include "logfilemanager.h"
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
@@ -19,7 +20,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     m_dashboard->setFile("default_dashboard.qml");
     ui->mdiArea->addSubWindow(m_dashboard);
     m_dashboard->show();
-
+    LogFileManager *manager = new LogFileManager(this);
+    connect(manager,&LogFileManager::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
+    connect(manager,&LogFileManager::logFileProgress,ui->widget,&LogControlBar::setTime);
 
 }
 void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud,QString inifile)
@@ -37,6 +40,10 @@ void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorb
     connect(m_comms,&MSPComms::interrogateTaskSucceed,progress,&InterrogateProgressView::taskSucceed);
     connect(m_comms,&MSPComms::interrogateTaskFail,progress,&InterrogateProgressView::taskFail);
     connect(m_comms,&MSPComms::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
+
+}
+void MainWindow::logFilePosChangeReq(int pos)
+{
 
 }
 MainWindow::~MainWindow()

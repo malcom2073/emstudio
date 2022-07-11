@@ -71,18 +71,21 @@ static unsigned long Crc32_ComputeBuf( unsigned long inCrc32, const void *buf,
     }
     return( crc32 ^ 0xFFFFFFFF );
 }
+
+#include <QThread>
 int main(int argc, char *argv[])
 {
 
+    //return 0;
 
     QApplication a(argc, argv);
-    ConnectionDialog *dialog = new ConnectionDialog();
-    dialog->setWindowTitle("EMStudio Connect");
-    dialog->show();
+    //ConnectionDialog *dialog = new ConnectionDialog();
+    //dialog->setWindowTitle("EMStudio Connect");
+    //dialog->show();
     MainWindow w;
-    dialog->connect(dialog,&ConnectionDialog::connectionSelected,&w,&MainWindow::connectionSelection);
-    dialog->connect(dialog,&ConnectionDialog::done,&w,&MainWindow::show);
-
+    //dialog->connect(dialog,&ConnectionDialog::connectionSelected,&w,&MainWindow::connectionSelection);
+    //dialog->connect(dialog,&ConnectionDialog::done,&w,&MainWindow::show);
+    w.show();
 
     return a.exec();
 }

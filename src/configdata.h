@@ -38,7 +38,12 @@ public:
     }
     static inline QVariant BytesToFloat(QByteArray value)
     {
-        float val = *reinterpret_cast<float*>(value.data());
+        QByteArray reverse;
+        for (int i=0;i<value.size();i++)
+        {
+            reverse.prepend(value[i]);
+        }
+        float val = *reinterpret_cast<float*>(reverse.data());
         return QVariant(val);
     }
     static inline QByteArray ValueToBytes(QVariant value, int size, bool issigned,bool isbig)

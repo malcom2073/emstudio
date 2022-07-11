@@ -14,9 +14,12 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralwidget">
-   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0">
+   <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
     <item>
      <widget class="ParamButtonBar" name="buttonBar" native="true"/>
+    </item>
+    <item>
+     <widget class="LogControlBar" name="widget" native="true"/>
     </item>
     <item>
      <widget class="QMdiArea" name="mdiArea"/>
@@ -40,6 +43,12 @@
    <class>ParamButtonBar</class>
    <extends>QWidget</extends>
    <header>parambuttonbar.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>LogControlBar</class>
+   <extends>QWidget</extends>
+   <header>logcontrolbar.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

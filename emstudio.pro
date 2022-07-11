@@ -19,6 +19,8 @@ SOURCES += \
     src/filedownloader.cpp \
     src/gaugeitem.cpp \
     src/interrogateprogressview.cpp \
+    src/logcontrolbar.cpp \
+    src/logfilemanager.cpp \
     src/overviewprogressitemdelegate.cpp \
     src/parambuttonbar.cpp \
     src/scalarconfigdata.cpp \
@@ -55,6 +57,8 @@ HEADERS += \
     src/filedownloader.h \
     src/gaugeitem.h \
     src/interrogateprogressview.h \
+    src/logcontrolbar.h \
+    src/logfilemanager.h \
     src/overviewprogressitemdelegate.h \
     src/parambuttonbar.h \
     src/scalarconfigdata.h \
@@ -102,6 +106,7 @@ HEADERS += \
 
 FORMS += \
     src/consoletextview.ui \
+    src/logcontrolbar.ui \
     src/tableview2d.ui \
     src/ui/connectiondialog.ui \
     src/ui/interrogateprogressview.ui \
