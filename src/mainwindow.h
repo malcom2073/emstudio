@@ -33,6 +33,7 @@ private:
     MSPComms *m_comms;
     InterrogateProgressView *progress;
     QMdiSubWindow *m_dashboardWindow;
+    QMdiSubWindow *m_serialConnectWindow;
 private slots:
     void interrogateTaskStart(QString name,int seq);
     void interrogationCompleted();

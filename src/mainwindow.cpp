@@ -26,6 +26,9 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWi
     //m_dashboard->hide();
     connect(ui->actionLoad_Log,&QAction::triggered,this,&MainWindow::loadLogActionClicked);
     connect(ui->actionConnect_Serial,&QAction::triggered,this,&MainWindow::connectSerialActionClicked);
+    m_serialConnectWindow = 0;
+    m_dashboardWindow = 0;
+    connectSerialActionClicked();
 
 }
 void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud,QString inifile)
@@ -43,6 +46,7 @@ void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorb
     connect(m_comms,&MSPComms::interrogateTaskSucceed,progress,&InterrogateProgressView::taskSucceed);
     connect(m_comms,&MSPComms::interrogateTaskFail,progress,&InterrogateProgressView::taskFail);
     connect(m_comms,&MSPComms::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
+    m_serialConnectWindow->hide();
 
 }
 void MainWindow::logFilePosChangeReq(int pos)
@@ -68,12 +72,11 @@ void MainWindow::connectSerialActionClicked()
     qDebug() << "Connect serial clicked!";
     ConnectionDialog *dialog = new ConnectionDialog();
     dialog->connect(dialog,&ConnectionDialog::connectionSelected,this,&MainWindow::connectionSelection);
-    dialog->connect(dialog,&ConnectionDialog::done,this,&MainWindow::show);
     dialog->setWindowTitle("EMStudio Connect");
     QSize preaddsize = dialog->size();
-    QMdiSubWindow *win = ui->mdiArea->addSubWindow(dialog);
+    m_serialConnectWindow = ui->mdiArea->addSubWindow(dialog);
     dialog->show();
-    win->setFixedSize(preaddsize);
+    m_serialConnectWindow->setFixedSize(preaddsize);
 }
 void MainWindow::interrogationCompleted()
 {
