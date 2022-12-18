@@ -35,6 +35,7 @@ public:
     void setTracingEnabled(bool enabled) { m_traceEnabled = enabled; update(); }
     void setMaxValues(double maxx,double maxy,double maxz);
 private:
+    double m_itemHeightMultiplier;
     double m_maxXValue;
     double m_maxYValue;
     double m_maxZValue;

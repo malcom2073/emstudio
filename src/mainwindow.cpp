@@ -70,8 +70,10 @@ void MainWindow::connectSerialActionClicked()
     dialog->connect(dialog,&ConnectionDialog::connectionSelected,this,&MainWindow::connectionSelection);
     dialog->connect(dialog,&ConnectionDialog::done,this,&MainWindow::show);
     dialog->setWindowTitle("EMStudio Connect");
-    ui->mdiArea->addSubWindow(dialog);
+    QSize preaddsize = dialog->size();
+    QMdiSubWindow *win = ui->mdiArea->addSubWindow(dialog);
     dialog->show();
+    win->setFixedSize(preaddsize);
 }
 void MainWindow::interrogationCompleted()
 {

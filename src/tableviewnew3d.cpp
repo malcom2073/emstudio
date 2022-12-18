@@ -28,6 +28,7 @@ TableViewNew3D::TableViewNew3D(QWidget *parent) : QWidget(parent)
     m_maxSelectedRow = 0;
     m_minSelectedColumn = 0;
     m_maxSelectedColumn = 0;
+    m_itemHeightMultiplier = 0.7;
 
 }
 void TableViewNew3D::setTracingValue(double x,double y)
@@ -43,6 +44,7 @@ void TableViewNew3D::addHotkey(int key,Qt::KeyboardModifier modifier)
 
 void TableViewNew3D::resizeEvent(QResizeEvent *evt)
 {
+    m_itemHeightMultiplier = 0.7;
     m_itemWidth = this->width() / (m_columnCount + 1);
     m_itemHeight = this->height() / (m_rowCount + 1);
     this->update();
@@ -254,15 +256,16 @@ void TableViewNew3D::drawCell(QPainter *painter,int cellx,int celly,QString text
     }
 
 
+    // TODO: There's probably a better way to handle this...
     QFont font = painter->font();
-    font.setPixelSize(m_itemHeight*0.7);
+    font.setPixelSize(m_itemHeight*m_itemHeightMultiplier);
     painter->setFont(font);
     painter->setPen(pen);
-    //int width = painter->fontMetrics().width(text);
-    int width = 50;
+    int width = painter->fontMetrics().horizontalAdvance(text);
+    //int width = 50;
     if (width > m_itemWidth)
     {
-
+        m_itemHeightMultiplier -= 0.01;
     }
     painter->drawText(((cellx)*m_itemWidth) + (m_itemWidth/2.0) - (width / 2.0),(celly)*m_itemHeight + ((m_itemHeight/2.0)-2) + (painter->fontMetrics().height()/2.0),text);
     painter->setPen(oldpen);
