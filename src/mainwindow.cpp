@@ -13,16 +13,19 @@
 #include "interrogateprogressview.h"
 #include "consoletextview.h"
 #include "logfilemanager.h"
+#include "connectiondialog.h"
+
 MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent), ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
     m_dashboard = new Dashboard();
     m_dashboard->setFile("default_dashboard.qml");
-    ui->mdiArea->addSubWindow(m_dashboard);
-    m_dashboard->show();
-    LogFileManager *manager = new LogFileManager(this);
-    connect(manager,&LogFileManager::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
-    connect(manager,&LogFileManager::logFileProgress,ui->widget,&LogControlBar::setTime);
+    m_dashboardWindow = ui->mdiArea->addSubWindow(m_dashboard);
+    m_dashboardWindow->hide();
+    ui->logControllerWidget->hide();
+    //m_dashboard->hide();
+    connect(ui->actionLoad_Log,&QAction::triggered,this,&MainWindow::loadLogActionClicked);
+    connect(ui->actionConnect_Serial,&QAction::triggered,this,&MainWindow::connectSerialActionClicked);
 
 }
 void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorbaud,QString inifile)
@@ -45,22 +48,41 @@ void MainWindow::connectionSelection(bool isserial,QString comorhost,int portorb
 void MainWindow::logFilePosChangeReq(int pos)
 {
 
+
 }
 MainWindow::~MainWindow()
 {
     delete ui;
 }
+void MainWindow::loadLogActionClicked()
+{
+    m_dashboardWindow->show();
+    LogFileManager *manager = new LogFileManager(this);
+    connect(manager,&LogFileManager::dataLogPayloadDecoded,this,&MainWindow::dataLogPayloadDecoded);
+    connect(manager,&LogFileManager::logFileProgress,ui->logControllerWidget,&LogControlBar::setTime);
+    qDebug() << "Connect serial clicked!";
 
+}
+void MainWindow::connectSerialActionClicked()
+{
+    qDebug() << "Connect serial clicked!";
+    ConnectionDialog *dialog = new ConnectionDialog();
+    dialog->connect(dialog,&ConnectionDialog::connectionSelected,this,&MainWindow::connectionSelection);
+    dialog->connect(dialog,&ConnectionDialog::done,this,&MainWindow::show);
+    dialog->setWindowTitle("EMStudio Connect");
+    ui->mdiArea->addSubWindow(dialog);
+    dialog->show();
+}
 void MainWindow::interrogationCompleted()
 {
     ParameterView *param = new ParameterView();
     ui->mdiArea->addSubWindow(param);
     param->passConfigBlockList(m_comms->getMetaParser()->configMetaData());
     param->passMenuList(m_comms->getMetaParser()->menuMetaData());
-    ui->buttonBar->passMenuList(m_comms->getMetaParser()->menuMetaData());
+    ui->paramButtonBar->passMenuList(m_comms->getMetaParser()->menuMetaData());
     param->setActiveComms(m_comms);
-    ui->buttonBar->setActiveComms(m_comms);
-    ui->buttonBar->passMdiArea(ui->mdiArea);
+    ui->paramButtonBar->setActiveComms(m_comms);
+    ui->paramButtonBar->passMdiArea(ui->mdiArea);
 
     ConsoleTextView *console = new ConsoleTextView();
     ui->mdiArea->addSubWindow(console);

@@ -16,6 +16,8 @@ QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
 class InterrogateProgressView;
+class QMdiSubWindow;
+class ConnectionDialog;
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
@@ -30,10 +32,13 @@ private:
     Ui::MainWindow *ui;
     MSPComms *m_comms;
     InterrogateProgressView *progress;
+    QMdiSubWindow *m_dashboardWindow;
 private slots:
     void interrogateTaskStart(QString name,int seq);
     void interrogationCompleted();
     void dataLogPayloadDecoded(QVariantMap data);
     void logFilePosChangeReq(int pos);
+    void loadLogActionClicked();
+    void connectSerialActionClicked();
 };
 #endif // MAINWINDOW_H

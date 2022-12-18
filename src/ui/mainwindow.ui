@@ -16,10 +16,10 @@
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout" stretch="0,0,0">
     <item>
-     <widget class="ParamButtonBar" name="buttonBar" native="true"/>
+     <widget class="ParamButtonBar" name="paramButtonBar" native="true"/>
     </item>
     <item>
-     <widget class="LogControlBar" name="widget" native="true"/>
+     <widget class="LogControlBar" name="logControllerWidget" native="true"/>
     </item>
     <item>
      <widget class="QMdiArea" name="mdiArea"/>
@@ -35,8 +35,37 @@
      <height>22</height>
     </rect>
    </property>
+   <widget class="QMenu" name="menuLogs">
+    <property name="title">
+     <string>Logs</string>
+    </property>
+    <addaction name="actionLoad_Log"/>
+   </widget>
+   <widget class="QMenu" name="menuConnection">
+    <property name="title">
+     <string>Connection</string>
+    </property>
+    <addaction name="actionConnect_Serial"/>
+   </widget>
+   <addaction name="menuLogs"/>
+   <addaction name="menuConnection"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
+  <action name="actionLoad_Log">
+   <property name="text">
+    <string>Load Log</string>
+   </property>
+  </action>
+  <action name="actionUnload_Log">
+   <property name="text">
+    <string>Unload Log</string>
+   </property>
+  </action>
+  <action name="actionConnect_Serial">
+   <property name="text">
+    <string>Connect Serial</string>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>
