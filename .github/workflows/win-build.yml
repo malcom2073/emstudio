@@ -2,9 +2,9 @@ name: WindowsUnstable
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "main" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "main" ]
 #  schedule:
 #    - cron: '0 2 * * *' # run at 2 AM UTC
 jobs:
